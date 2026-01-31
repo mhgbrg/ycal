@@ -10,10 +10,10 @@ ycal - Rust CLI tool that generates a self-contained HTML file for a printable y
 
 ```bash
 cargo build
-cargo run -- 2026 > out/ycal.html
+cargo run -- 2026 --config config/en.json > out/ycal.html
 ```
 
-When generating the html page, run exactly `cargo run -- 2026 > out/ycal.html`, do not run `cargo run -- 2026 > out/ycal.html 2>&1 && echo "OK"`
+When generating the html page, run the exact command above, do not run `cargo run -- 2026 > out/ycal.html 2>&1 && echo "OK"`
 
 ## Architecture
 

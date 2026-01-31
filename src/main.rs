@@ -13,12 +13,13 @@ struct Cli {
     year: i32,
     /// Path to JSON configuration file
     #[arg(short, long)]
-    config: Option<PathBuf>,
+    config: PathBuf,
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 struct Config {
-    #[serde(default)]
+    month_names: [String; 12],
+    day_names: [String; 7],
     holidays: Vec<Holiday>,
 }
 
@@ -63,33 +64,6 @@ struct DayData {
     tooltip: String,
 }
 
-fn weekday_abbrev(wd: Weekday) -> &'static str {
-    match wd {
-        Weekday::Mon => "Mo",
-        Weekday::Tue => "Tu",
-        Weekday::Wed => "We",
-        Weekday::Thu => "Th",
-        Weekday::Fri => "Fr",
-        Weekday::Sat => "Sa",
-        Weekday::Sun => "Su",
-    }
-}
-
-const MONTH_NAMES: [&str; 12] = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-];
-
 fn days_in_month(year: i32, month: u32) -> u32 {
     if month == 12 {
         NaiveDate::from_ymd_opt(year + 1, 1, 1)
@@ -127,48 +101,48 @@ fn build_month(
         .collect()
 }
 
-fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12]) -> TemplateData {
+fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config) -> TemplateData {
+    let day_entry_to_data = |entry: &DayEntry| -> DayData {
+        let mut classes = Vec::new();
+        if entry.is_weekend || entry.is_holiday {
+            classes.push("red");
+        }
+        if entry.weekday == Weekday::Mon && entry.day_number != 1 {
+            classes.push("week-start");
+        }
+        if entry.is_last_day {
+            classes.push("last-day");
+        }
+        let has_tooltip = entry.holiday_name.is_some();
+        let tooltip = entry.holiday_name.clone().unwrap_or_default();
+        DayData {
+            number: entry.day_number,
+            weekday: config.day_names[entry.weekday.num_days_from_monday() as usize].clone(),
+            css_class: classes.join(" "),
+            has_tooltip,
+            tooltip,
+        }
+    };
+
     let halves = vec![
         HalfData {
             months: (0..6)
                 .map(|i| MonthData {
-                    name: MONTH_NAMES[i].to_string(),
-                    days: months[i].iter().map(day_entry_to_data).collect(),
+                    name: config.month_names[i].clone(),
+                    days: months[i].iter().map(&day_entry_to_data).collect(),
                 })
                 .collect(),
         },
         HalfData {
             months: (6..12)
                 .map(|i| MonthData {
-                    name: MONTH_NAMES[i].to_string(),
-                    days: months[i].iter().map(day_entry_to_data).collect(),
+                    name: config.month_names[i].clone(),
+                    days: months[i].iter().map(&day_entry_to_data).collect(),
                 })
                 .collect(),
         },
     ];
     TemplateData { year, halves }
-}
-
-fn day_entry_to_data(entry: &DayEntry) -> DayData {
-    let mut classes = Vec::new();
-    if entry.is_weekend || entry.is_holiday {
-        classes.push("red");
-    }
-    if entry.weekday == Weekday::Mon && entry.day_number != 1 {
-        classes.push("week-start");
-    }
-    if entry.is_last_day {
-        classes.push("last-day");
-    }
-    let has_tooltip = entry.holiday_name.is_some();
-    let tooltip = entry.holiday_name.clone().unwrap_or_default();
-    DayData {
-        number: entry.day_number,
-        weekday: weekday_abbrev(entry.weekday).to_string(),
-        css_class: classes.join(" "),
-        has_tooltip,
-        tooltip,
-    }
 }
 
 const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
@@ -182,24 +156,19 @@ fn main() {
         process::exit(1);
     }
 
-    let config = match cli.config {
-        Some(path) => {
-            let content = match fs::read_to_string(&path) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Error reading config file '{}': {}", path.display(), e);
-                    process::exit(1);
-                }
-            };
-            match serde_json::from_str::<Config>(&content) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Error parsing config JSON: {}", e);
-                    process::exit(1);
-                }
-            }
+    let content = match fs::read_to_string(&cli.config) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("Error reading config file '{}': {}", cli.config.display(), e);
+            process::exit(1);
         }
-        None => Config::default(),
+    };
+    let config = match serde_json::from_str::<Config>(&content) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("Error parsing config JSON: {}", e);
+            process::exit(1);
+        }
     };
 
     // Build holiday lookup map
@@ -223,7 +192,7 @@ fn main() {
     });
 
     let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
-    let data = build_template_data(year, &months);
+    let data = build_template_data(year, &months, &config);
     let html = template.render(&data);
     print!("{}", html);
 }
