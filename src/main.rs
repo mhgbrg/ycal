@@ -14,13 +14,15 @@ struct Cli {
     /// Path to JSON configuration file
     #[arg(short, long)]
     config: PathBuf,
+    /// Path to JSON holidays file
+    #[arg(long)]
+    holidays: Option<PathBuf>,
 }
 
 #[derive(Deserialize)]
 struct Config {
     month_names: [String; 12],
     day_names: [String; 7],
-    holidays: Vec<Holiday>,
 }
 
 #[derive(Deserialize)]
@@ -171,9 +173,29 @@ fn main() {
         }
     };
 
+    // Load holidays from separate file if provided
+    let holidays: Vec<Holiday> = if let Some(ref path) = cli.holidays {
+        let h_content = match fs::read_to_string(path) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("Error reading holidays file '{}': {}", path.display(), e);
+                process::exit(1);
+            }
+        };
+        match serde_json::from_str(&h_content) {
+            Ok(h) => h,
+            Err(e) => {
+                eprintln!("Error parsing holidays JSON: {}", e);
+                process::exit(1);
+            }
+        }
+    } else {
+        Vec::new()
+    };
+
     // Build holiday lookup map
     let mut holiday_map: HashMap<NaiveDate, String> = HashMap::new();
-    for h in &config.holidays {
+    for h in &holidays {
         match NaiveDate::parse_from_str(&h.date, "%Y-%m-%d") {
             Ok(date) => {
                 if date.year() == year {
