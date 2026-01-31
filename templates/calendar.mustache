@@ -8,19 +8,19 @@
 
       @page {
         size: A4 portrait;
-        margin: 8mm;
+        margin: 10mm;
       }
 
       body {
         font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 8.5pt;
-        line-height: 1.0;
-        color: #222;
+        font-size: 8pt;
+        line-height: 1.15;
+        color: #333;
       }
 
       .page {
-        width: 194mm;
-        height: 281mm;
+        width: 190mm;
+        height: 277mm;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -28,8 +28,9 @@
 
       .header {
         height: 8mm;
-        font-size: 16pt;
-        font-weight: 700;
+        font-size: 18pt;
+        font-weight: 300;
+        letter-spacing: 0.15em;
         display: flex;
         align-items: center;
         padding-left: 1mm;
@@ -39,25 +40,30 @@
         flex: 1;
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        border-top: 1px solid #444;
-        border-left: 1px solid #444;
+        gap: 0;
         min-height: 0;
       }
 
       .month {
-        border-right: 1px solid #444;
         display: flex;
         flex-direction: column;
         min-height: 0;
+        padding: 0 1.5mm;
+      }
+
+      .month:not(:last-child) {
+        border-right: 0.5px solid #ddd;
       }
 
       .month-name {
-        font-weight: 700;
+        font-weight: 600;
         font-size: 7.5pt;
-        text-align: center;
-        padding: 0.5mm 0;
-        border-bottom: 1px solid #444;
-        background: #f5f5f5;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #444;
+        padding: 1mm 0;
+        border-bottom: 0.5px solid #ccc;
         flex-shrink: 0;
       }
 
@@ -65,8 +71,7 @@
         flex: 1;
         display: flex;
         align-items: center;
-        padding: 0 0.8mm;
-        border-bottom: 1px solid #ddd;
+        padding: 0;
         min-height: 0;
         font-variant-numeric: tabular-nums;
       }
@@ -74,10 +79,19 @@
       .day-label {
         white-space: nowrap;
         flex-shrink: 0;
+        letter-spacing: 0.02em;
       }
 
       .red {
-        color: #cc0000;
+        color: #c45;
+      }
+
+      .week-start {
+        border-top: 0.5px solid #ddd;
+      }
+
+      .last-day {
+        font-weight: 700;
       }
 
       @media screen {
@@ -85,12 +99,15 @@
           display: flex;
           justify-content: center;
           padding: 10mm;
-          background: #e0e0e0;
+          background: #f0f0f0;
         }
         .page {
           background: white;
-          box-shadow: 0 1mm 4mm rgba(0,0,0,0.2);
-          padding: 8mm;
+          box-shadow:
+            0 1px 3px rgba(0,0,0,0.08),
+            0 4px 12px rgba(0,0,0,0.06);
+          border-radius: 2px;
+          padding: 10mm;
           width: 210mm;
           height: 297mm;
         }
@@ -112,7 +129,7 @@
         <div class="month">
           <div class="month-name">{{name}}</div>
           {{#days}}
-          <div{{#is_red}} class="red"{{/is_red}}{{#has_tooltip}} title="{{tooltip}}"{{/has_tooltip}}><span class="day-label">{{number}} {{weekday}}</span></div>
+          <div{{#css_class}} class="{{css_class}}"{{/css_class}}{{#has_tooltip}} title="{{tooltip}}"{{/has_tooltip}}><span class="day-label">{{number}} {{weekday}}</span></div>
           {{/days}}
         </div>
         {{/months}}

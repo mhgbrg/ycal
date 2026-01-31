@@ -33,6 +33,7 @@ struct DayEntry {
     weekday: Weekday,
     is_weekend: bool,
     is_holiday: bool,
+    is_last_day: bool,
     holiday_name: Option<String>,
 }
 
@@ -57,7 +58,7 @@ struct MonthData {
 struct DayData {
     number: u32,
     weekday: String,
-    is_red: bool,
+    css_class: String,
     has_tooltip: bool,
     tooltip: String,
 }
@@ -113,11 +114,13 @@ fn build_month(
             let is_weekend = wd == Weekday::Sat || wd == Weekday::Sun;
             let holiday_name = holiday_map.get(&date).cloned();
             let is_holiday = holiday_name.is_some();
+            let is_last_day = month == 12 && day == 31;
             DayEntry {
                 day_number: day,
                 weekday: wd,
                 is_weekend,
                 is_holiday,
+                is_last_day,
                 holiday_name,
             }
         })
@@ -147,13 +150,22 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12]) -> TemplateData 
 }
 
 fn day_entry_to_data(entry: &DayEntry) -> DayData {
-    let is_red = entry.is_weekend || entry.is_holiday;
+    let mut classes = Vec::new();
+    if entry.is_weekend || entry.is_holiday {
+        classes.push("red");
+    }
+    if entry.weekday == Weekday::Mon && entry.day_number != 1 {
+        classes.push("week-start");
+    }
+    if entry.is_last_day {
+        classes.push("last-day");
+    }
     let has_tooltip = entry.holiday_name.is_some();
     let tooltip = entry.holiday_name.clone().unwrap_or_default();
     DayData {
         number: entry.day_number,
         weekday: weekday_abbrev(entry.weekday).to_string(),
-        is_red,
+        css_class: classes.join(" "),
         has_tooltip,
         tooltip,
     }
