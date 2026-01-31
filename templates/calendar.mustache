@@ -90,6 +90,11 @@
         flex: 1.30;
       }
 
+      .day-container {
+        display: flex;
+        justify-content: space-between;
+      }
+
       .day-label {
         white-space: nowrap;
         flex-shrink: 0;
@@ -112,7 +117,7 @@
         font-weight: 700;
       }
 
-      .holiday-name {
+      .holiday-name, .week-number {
         font-size: 3pt;
         line-height: 1;
         color: #999;
@@ -154,7 +159,13 @@
           <div class="month-name">{{name}}</div>
           {{#days}}
           <div{{#css_class}} class="{{css_class}}"{{/css_class}}>
-            <span class="day-label">{{number}} {{weekday}}</span>
+            <div class="day-container">
+              <span class="day-label">{{day_number}} {{weekday}}</span>
+              {{#is_week_start}}<span class="week-number">{{week_number}}</span>{{/is_week_start}}
+              {{^is_week_start}}
+                {{#is_month_start}}<span class="week-number">{{week_number}}</span>{{/is_month_start}}
+              {{/is_week_start}}
+            </div>
             {{#holiday_name}}<span class="holiday-name">{{holiday_name}}</span>{{/holiday_name}}
           </div>
           {{/days}}

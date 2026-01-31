@@ -34,6 +34,7 @@ struct Holiday {
 struct DayEntry {
     day_number: u32,
     weekday: Weekday,
+    week_number: u32,
     is_weekend: bool,
     is_holiday: bool,
     is_last_day: bool,
@@ -59,10 +60,15 @@ struct MonthData {
 
 #[derive(Content)]
 struct DayData {
-    number: u32,
+    day_number: u32,
     weekday: String,
-    css_class: String,
+    week_number: u32,
+    is_week_start: bool,
+    is_weekend: bool,
+    is_month_start: bool,
+    is_last_day: bool,
     holiday_name: String,
+    css_class: String,
 }
 
 fn days_in_month(year: i32, month: u32) -> u32 {
@@ -85,6 +91,7 @@ fn build_month(
     (1..=num_days)
         .map(|day| {
             let date = NaiveDate::from_ymd_opt(year, month, day).unwrap();
+            let week_number = date.iso_week().week();
             let wd = date.weekday();
             let is_weekend = wd == Weekday::Sat || wd == Weekday::Sun;
             let holiday_name = holiday_map.get(&date).cloned();
@@ -93,6 +100,7 @@ fn build_month(
             DayEntry {
                 day_number: day,
                 weekday: wd,
+                week_number,
                 is_weekend,
                 is_holiday,
                 is_last_day,
@@ -118,10 +126,15 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config)
             classes.push("last-day");
         }
         DayData {
-            number: entry.day_number,
+            day_number: entry.day_number,
             weekday: config.day_names[entry.weekday.num_days_from_monday() as usize].clone(),
-            css_class: classes.join(" "),
+            week_number: entry.week_number,
+            is_week_start: entry.weekday == Weekday::Mon,
+            is_weekend: entry.is_weekend,
+            is_month_start: entry.day_number == 1,
+            is_last_day: entry.is_last_day,
             holiday_name: entry.holiday_name.clone().unwrap_or_default(),
+            css_class: classes.join(" "),
         }
     };
 
