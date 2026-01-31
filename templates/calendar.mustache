@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{{year}} Calendar</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+
+      body {
+        font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 8.5pt;
+        line-height: 1.0;
+        color: #222;
+      }
+
+      .page {
+        width: 194mm;
+        height: 281mm;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .header {
+        height: 8mm;
+        font-size: 16pt;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        padding-left: 1mm;
+      }
+
+      .half {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        border-top: 1px solid #444;
+        border-left: 1px solid #444;
+        min-height: 0;
+      }
+
+      .month {
+        border-right: 1px solid #444;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .month-name {
+        font-weight: 700;
+        font-size: 7.5pt;
+        text-align: center;
+        padding: 0.5mm 0;
+        border-bottom: 1px solid #444;
+        background: #f5f5f5;
+        flex-shrink: 0;
+      }
+
+      .month > div:not(.month-name) {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 0 0.8mm;
+        border-bottom: 1px solid #ddd;
+        min-height: 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .day-label {
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .red {
+        color: #cc0000;
+      }
+
+      @media screen {
+        body {
+          display: flex;
+          justify-content: center;
+          padding: 10mm;
+          background: #e0e0e0;
+        }
+        .page {
+          background: white;
+          box-shadow: 0 1mm 4mm rgba(0,0,0,0.2);
+          padding: 8mm;
+          width: 210mm;
+          height: 297mm;
+        }
+      }
+
+      @media print {
+        body {
+          background: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="header">{{year}}</div>
+      {{#halves}}
+      <div class="half">
+        {{#months}}
+        <div class="month">
+          <div class="month-name">{{name}}</div>
+          {{#days}}
+          <div{{#is_red}} class="red"{{/is_red}}{{#has_tooltip}} title="{{tooltip}}"{{/has_tooltip}}><span class="day-label">{{number}}{{weekday}}</span></div>
+          {{/days}}
+        </div>
+        {{/months}}
+      </div>
+      {{/halves}}
+    </div>
+  </body>
+</html>

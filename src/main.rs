@@ -1,5 +1,6 @@
 use chrono::{Datelike, NaiveDate, Weekday};
 use clap::Parser;
+use ramhorns::{Content, Template};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -33,6 +34,32 @@ struct DayEntry {
     is_weekend: bool,
     is_holiday: bool,
     holiday_name: Option<String>,
+}
+
+#[derive(Content)]
+struct TemplateData {
+    year: i32,
+    halves: Vec<HalfData>,
+}
+
+#[derive(Content)]
+struct HalfData {
+    months: Vec<MonthData>,
+}
+
+#[derive(Content)]
+struct MonthData {
+    name: String,
+    days: Vec<DayData>,
+}
+
+#[derive(Content)]
+struct DayData {
+    number: u32,
+    weekday: String,
+    is_red: bool,
+    has_tooltip: bool,
+    tooltip: String,
 }
 
 fn weekday_abbrev(wd: Weekday) -> &'static str {
@@ -97,160 +124,42 @@ fn build_month(
         .collect()
 }
 
-fn html_escape(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
+fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12]) -> TemplateData {
+    let halves = vec![
+        HalfData {
+            months: (0..6)
+                .map(|i| MonthData {
+                    name: MONTH_NAMES[i].to_string(),
+                    days: months[i].iter().map(day_entry_to_data).collect(),
+                })
+                .collect(),
+        },
+        HalfData {
+            months: (6..12)
+                .map(|i| MonthData {
+                    name: MONTH_NAMES[i].to_string(),
+                    days: months[i].iter().map(day_entry_to_data).collect(),
+                })
+                .collect(),
+        },
+    ];
+    TemplateData { year, halves }
 }
 
-fn render_html(year: i32, months: &[Vec<DayEntry>; 12]) -> String {
-    let mut html = String::with_capacity(32_000);
-
-    html.push_str("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>");
-    html.push_str(&year.to_string());
-    html.push_str(" Calendar</title>\n<style>\n");
-    html.push_str(CSS);
-    html.push_str("</style>\n</head>\n<body>\n<div class=\"page\">\n");
-
-    // Header
-    html.push_str("<div class=\"header\">");
-    html.push_str(&year.to_string());
-    html.push_str("</div>\n");
-
-    // Two halves: Jan-Jun, Jul-Dec
-    for half in 0..2 {
-        html.push_str("<div class=\"half\">\n");
-        for col in 0..6 {
-            let month_idx = half * 6 + col;
-            let month_data = &months[month_idx];
-            html.push_str("<div class=\"month\">\n");
-            html.push_str("<div class=\"month-name\">");
-            html.push_str(MONTH_NAMES[month_idx]);
-            html.push_str("</div>\n");
-            for entry in month_data {
-                let is_red = entry.is_weekend || entry.is_holiday;
-                let class = if is_red { " class=\"red\"" } else { "" };
-                let tooltip = match &entry.holiday_name {
-                    Some(name) => format!(" title=\"{}\"", html_escape(name)),
-                    None => String::new(),
-                };
-                html.push_str("<div");
-                html.push_str(class);
-                html.push_str(&tooltip);
-                html.push_str("><span class=\"day-label\">");
-                html.push_str(&entry.day_number.to_string());
-                html.push_str(weekday_abbrev(entry.weekday));
-                html.push_str("</span></div>\n");
-            }
-            html.push_str("</div>\n");
-        }
-        html.push_str("</div>\n");
-    }
-
-    html.push_str("</div>\n</body>\n</html>\n");
-    html
-}
-
-const CSS: &str = r#"
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-@page {
-    size: A4 portrait;
-    margin: 8mm;
-}
-
-body {
-    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 8.5pt;
-    line-height: 1.0;
-    color: #222;
-}
-
-.page {
-    width: 194mm;
-    height: 281mm;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.header {
-    height: 8mm;
-    font-size: 16pt;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    padding-left: 1mm;
-}
-
-.half {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    border-top: 1px solid #444;
-    border-left: 1px solid #444;
-    min-height: 0;
-}
-
-.month {
-    border-right: 1px solid #444;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-
-.month-name {
-    font-weight: 700;
-    font-size: 7.5pt;
-    text-align: center;
-    padding: 0.5mm 0;
-    border-bottom: 1px solid #444;
-    background: #f5f5f5;
-    flex-shrink: 0;
-}
-
-.month > div:not(.month-name) {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    padding: 0 0.8mm;
-    border-bottom: 1px solid #ddd;
-    min-height: 0;
-    font-variant-numeric: tabular-nums;
-}
-
-.day-label {
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.red {
-    color: #cc0000;
-}
-
-@media screen {
-    body {
-        display: flex;
-        justify-content: center;
-        padding: 10mm;
-        background: #e0e0e0;
-    }
-    .page {
-        background: white;
-        box-shadow: 0 1mm 4mm rgba(0,0,0,0.2);
-        padding: 8mm;
-        width: 210mm;
-        height: 297mm;
+fn day_entry_to_data(entry: &DayEntry) -> DayData {
+    let is_red = entry.is_weekend || entry.is_holiday;
+    let has_tooltip = entry.holiday_name.is_some();
+    let tooltip = entry.holiday_name.clone().unwrap_or_default();
+    DayData {
+        number: entry.day_number,
+        weekday: weekday_abbrev(entry.weekday).to_string(),
+        is_red,
+        has_tooltip,
+        tooltip,
     }
 }
 
-@media print {
-    body {
-        background: none;
-    }
-}
-"#;
+const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
 
 fn main() {
     let cli = Cli::parse();
@@ -301,6 +210,8 @@ fn main() {
         build_month(year, (i + 1) as u32, &holiday_map)
     });
 
-    let html = render_html(year, &months);
+    let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
+    let data = build_template_data(year, &months);
+    let html = template.render(&data);
     print!("{}", html);
 }

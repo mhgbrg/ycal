@@ -10,8 +10,8 @@ ycal - Rust CLI tool that generates a self-contained HTML file for a printable y
 
 ```bash
 cargo build
-cargo run -- 2026 > calendar.html
-cargo run -- 2026 --config example_config.json > calendar.html
+cargo run -- 2026 > out/without_config.html
+cargo run -- 2026 --config example_config.json > out/with_config.html
 ```
 
 ## Architecture
@@ -19,3 +19,7 @@ cargo run -- 2026 --config example_config.json > calendar.html
 Single-file Rust application (`src/main.rs`). Dependencies: clap (CLI), chrono (dates), serde/serde_json (config parsing).
 
 Output is a self-contained HTML file with embedded CSS, designed to print on one A4 portrait page.
+
+## Style
+
+- Mustache templates (`.mustache` files) use 2-space indentation.
