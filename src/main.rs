@@ -62,6 +62,7 @@ struct DayData {
     number: u32,
     weekday: String,
     css_class: String,
+    holiday_name: String,
 }
 
 fn days_in_month(year: i32, month: u32) -> u32 {
@@ -110,6 +111,9 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config)
         if entry.weekday == Weekday::Mon && entry.day_number != 1 {
             classes.push("week-start");
         }
+        if entry.is_holiday {
+            classes.push("has-holiday");
+        }
         if entry.is_last_day {
             classes.push("last-day");
         }
@@ -117,6 +121,7 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config)
             number: entry.day_number,
             weekday: config.day_names[entry.weekday.num_days_from_monday() as usize].clone(),
             css_class: classes.join(" "),
+            holiday_name: entry.holiday_name.clone().unwrap_or_default(),
         }
     };
 

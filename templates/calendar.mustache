@@ -79,10 +79,15 @@
       .month > div:not(.month-name) {
         flex: 1;
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        justify-content: center;
         padding: 0;
         min-height: 0;
         font-variant-numeric: tabular-nums;
+      }
+
+      .month > div.has-holiday {
+        flex: 1.30;
       }
 
       .day-label {
@@ -105,6 +110,15 @@
 
       .last-day {
         font-weight: 700;
+      }
+
+      .holiday-name {
+        font-size: 3pt;
+        line-height: 1;
+        color: #999;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       @media screen {
@@ -139,7 +153,10 @@
         <div class="month">
           <div class="month-name">{{name}}</div>
           {{#days}}
-          <div{{#css_class}} class="{{css_class}}"{{/css_class}}><span class="day-label">{{number}} {{weekday}}</span></div>
+          <div{{#css_class}} class="{{css_class}}"{{/css_class}}>
+            <span class="day-label">{{number}} {{weekday}}</span>
+            {{#holiday_name}}<span class="holiday-name">{{holiday_name}}</span>{{/holiday_name}}
+          </div>
           {{/days}}
         </div>
         {{/months}}

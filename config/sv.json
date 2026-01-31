@@ -1,5 +1,5 @@
 {
   "month_names": ["Januari", "Februari", "Mars", "April", "Maj", "Juni",
                   "Juli", "Augusti", "September", "Oktober", "November", "December"],
-  "day_names": ["Må", "Ti", "On", "To", "Fr", "Lö", "Sö"]
+  "day_names": ["M", "T", "O", "T", "F", "L", "S"]
 }
