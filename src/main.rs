@@ -62,8 +62,6 @@ struct DayData {
     number: u32,
     weekday: String,
     css_class: String,
-    has_tooltip: bool,
-    tooltip: String,
 }
 
 fn days_in_month(year: i32, month: u32) -> u32 {
@@ -115,14 +113,10 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config)
         if entry.is_last_day {
             classes.push("last-day");
         }
-        let has_tooltip = entry.holiday_name.is_some();
-        let tooltip = entry.holiday_name.clone().unwrap_or_default();
         DayData {
             number: entry.day_number,
             weekday: config.day_names[entry.weekday.num_days_from_monday() as usize].clone(),
             css_class: classes.join(" "),
-            has_tooltip,
-            tooltip,
         }
     };
 
