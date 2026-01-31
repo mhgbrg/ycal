@@ -18,8 +18,6 @@ struct Cli {
 #[derive(Deserialize, Default)]
 struct Config {
     #[serde(default)]
-    categories: Vec<String>,
-    #[serde(default)]
     holidays: Vec<Holiday>,
 }
 
@@ -99,10 +97,6 @@ fn build_month(
         .collect()
 }
 
-const PASTEL_COLORS: &[&str] = &[
-    "#b3d9ff", "#ffd9b3", "#d9b3ff", "#b3ffb3", "#ffb3d9", "#ffffb3", "#b3ffff", "#ffb3b3",
-];
-
 fn html_escape(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
@@ -110,7 +104,7 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
-fn render_html(year: i32, months: &[Vec<DayEntry>; 12], config: &Config) -> String {
+fn render_html(year: i32, months: &[Vec<DayEntry>; 12]) -> String {
     let mut html = String::with_capacity(32_000);
 
     html.push_str("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>");
@@ -150,20 +144,6 @@ fn render_html(year: i32, months: &[Vec<DayEntry>; 12], config: &Config) -> Stri
                 html.push_str("</span></div>\n");
             }
             html.push_str("</div>\n");
-        }
-        html.push_str("</div>\n");
-    }
-
-    // Footer with category legend
-    if !config.categories.is_empty() {
-        html.push_str("<div class=\"footer\">\n");
-        for (i, cat) in config.categories.iter().enumerate() {
-            let color = PASTEL_COLORS[i % PASTEL_COLORS.len()];
-            html.push_str("<span class=\"cat\" style=\"background:");
-            html.push_str(color);
-            html.push_str("\">");
-            html.push_str(&html_escape(cat));
-            html.push_str("</span>\n");
         }
         html.push_str("</div>\n");
     }
@@ -249,24 +229,6 @@ body {
     color: #cc0000;
 }
 
-.footer {
-    height: 10mm;
-    display: flex;
-    align-items: center;
-    gap: 3mm;
-    padding: 0 1mm;
-    border-top: 1px solid #444;
-    flex-shrink: 0;
-}
-
-.cat {
-    padding: 1mm 2.5mm;
-    border-radius: 1mm;
-    font-size: 7.5pt;
-    font-weight: 500;
-    border: 0.5px solid #bbb;
-}
-
 @media screen {
     body {
         display: flex;
@@ -339,6 +301,6 @@ fn main() {
         build_month(year, (i + 1) as u32, &holiday_map)
     });
 
-    let html = render_html(year, &months, &config);
+    let html = render_html(year, &months);
     print!("{}", html);
 }

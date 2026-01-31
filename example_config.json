@@ -1,5 +1,4 @@
 {
-  "categories": ["Vacation", "Birthdays", "Events", "Sick Leave"],
   "holidays": [
     { "date": "2026-01-01", "name": "New Year's Day" },
     { "date": "2026-01-06", "name": "Epiphany" },
