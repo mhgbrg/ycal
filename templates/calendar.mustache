@@ -8,7 +8,7 @@
 
       @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 0;
       }
 
       body {
@@ -19,8 +19,8 @@
       }
 
       .page {
-        width: 190mm;
-        height: 277mm;
+        width: 210mm;
+        height: 297mm;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -44,6 +44,14 @@
         min-height: 0;
       }
 
+      .half:last-child {
+        margin-bottom: 8mm;
+      }
+
+      .half:last-child .month > div:last-child {
+        border-bottom: 0.5px solid #ddd;
+      }
+
       .month {
         display: flex;
         flex-direction: column;
@@ -63,6 +71,7 @@
         letter-spacing: 0.08em;
         color: #444;
         padding: 1mm 0;
+        margin-bottom: 16mm;
         border-bottom: 0.5px solid #ccc;
         flex-shrink: 0;
       }
@@ -86,6 +95,10 @@
         color: #c45;
       }
 
+      .month-name + div {
+        border-top: 0.5px solid #ddd;
+      }
+
       .week-start {
         border-top: 0.5px solid #ddd;
       }
@@ -107,9 +120,6 @@
             0 1px 3px rgba(0,0,0,0.08),
             0 4px 12px rgba(0,0,0,0.06);
           border-radius: 2px;
-          padding: 10mm;
-          width: 210mm;
-          height: 297mm;
         }
       }
 
