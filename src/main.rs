@@ -12,16 +12,16 @@ use std::{fs, process};
 struct Cli {
     /// Year to generate calendar for (1-9999)
     year: i32,
-    /// Path to JSON configuration file
+    /// Path to JSON locale file
     #[arg(short, long)]
-    config: PathBuf,
+    locale: PathBuf,
     /// Path to JSON holidays file
     #[arg(long)]
     holidays: Option<PathBuf>,
 }
 
 #[derive(Deserialize)]
-struct Config {
+struct Locale {
     month_names: [String; 12],
     day_names: [String; 7],
 }
@@ -82,7 +82,7 @@ fn read_json<T: DeserializeOwned>(path: &Path) -> T {
 fn build_template_data(
     year: i32,
     months: &[Vec<NaiveDate>; 12],
-    config: &Config,
+    locale: &Locale,
     holidays: &[Holiday],
 ) -> TemplateData {
     let holiday_map: HashMap<NaiveDate, String> = holidays
@@ -115,7 +115,7 @@ fn build_template_data(
 
         DayData {
             day_number: day,
-            weekday: config.day_names[wd.num_days_from_monday() as usize].clone(),
+            weekday: locale.day_names[wd.num_days_from_monday() as usize].clone(),
             week_number: date.iso_week().week(),
             is_week_start: wd == Weekday::Mon,
             is_weekend,
@@ -130,7 +130,7 @@ fn build_template_data(
         HalfData {
             months: (0..6)
                 .map(|i| MonthData {
-                    name: config.month_names[i].clone(),
+                    name: locale.month_names[i].clone(),
                     days: months[i].iter().map(&date_to_day_data).collect(),
                 })
                 .collect(),
@@ -138,7 +138,7 @@ fn build_template_data(
         HalfData {
             months: (6..12)
                 .map(|i| MonthData {
-                    name: config.month_names[i].clone(),
+                    name: locale.month_names[i].clone(),
                     days: months[i].iter().map(&date_to_day_data).collect(),
                 })
                 .collect(),
@@ -159,7 +159,7 @@ fn main() {
         process::exit(1);
     }
 
-    let config: Config = read_json(&cli.config);
+    let locale: Locale = read_json(&cli.locale);
     let holidays: Vec<Holiday> = cli
         .holidays
         .as_ref()
@@ -174,7 +174,7 @@ fn main() {
     });
 
     let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
-    let template_data = build_template_data(year, &months, &config, &holidays);
+    let template_data = build_template_data(year, &months, &locale, &holidays);
     let html = template.render(&template_data);
     print!("{}", html);
 }
