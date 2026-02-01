@@ -5,7 +5,7 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::{fs, process};
+use std::{array, fs, process};
 
 #[derive(Parser)]
 #[command(about = "Generate a printable yearly calendar as HTML")]
@@ -162,11 +162,10 @@ fn main() {
     let locale: Locale = read_json(&cli.locale);
     let holidays: Vec<Holiday> = cli
         .holidays
-        .as_ref()
-        .map(|path| read_json(path))
+        .map(|path| read_json(path.as_ref()))
         .unwrap_or_default();
 
-    let months: [Vec<NaiveDate>; 12] = std::array::from_fn(|i| {
+    let months: [Vec<NaiveDate>; 12] = array::from_fn(|i| {
         let month = (i + 1) as u32;
         let first = NaiveDate::from_ymd_opt(year, month, 1).unwrap();
         let num_days = first.num_days_in_month() as u32;
