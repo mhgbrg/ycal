@@ -1,9 +1,10 @@
-use chrono::{Datelike, NaiveDate, Weekday};
+use chrono::{Datelike, Days, NaiveDate, Weekday};
 use clap::Parser;
 use ramhorns::{Content, Template};
+use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{fs, process};
 
 #[derive(Parser)]
@@ -27,18 +28,8 @@ struct Config {
 
 #[derive(Deserialize)]
 struct Holiday {
-    date: String,
+    date: NaiveDate,
     name: String,
-}
-
-struct DayEntry {
-    day_number: u32,
-    weekday: Weekday,
-    week_number: u32,
-    is_weekend: bool,
-    is_holiday: bool,
-    is_last_day: bool,
-    holiday_name: Option<String>,
 }
 
 #[derive(Content)]
@@ -71,69 +62,66 @@ struct DayData {
     css_class: String,
 }
 
-fn days_in_month(year: i32, month: u32) -> u32 {
-    if month == 12 {
-        NaiveDate::from_ymd_opt(year + 1, 1, 1)
-    } else {
-        NaiveDate::from_ymd_opt(year, month + 1, 1)
+fn read_json<T: DeserializeOwned>(path: &Path) -> T {
+    let content = match fs::read_to_string(path) {
+        Ok(string) => string,
+        Err(e) => {
+            eprintln!("Error: unable to read file '{}': {}", path.display(), e);
+            process::exit(1);
+        }
+    };
+    match serde_json::from_str(&content) {
+        Ok(value) => value,
+        Err(e) => {
+            eprintln!("Error: unable to parse file content as JSON '{}': {}", path.display(), e);
+            process::exit(1);
+        }
     }
-    .unwrap()
-    .signed_duration_since(NaiveDate::from_ymd_opt(year, month, 1).unwrap())
-    .num_days() as u32
 }
 
-fn build_month(
+fn build_template_data(
     year: i32,
-    month: u32,
-    holiday_map: &HashMap<NaiveDate, String>,
-) -> Vec<DayEntry> {
-    let num_days = days_in_month(year, month);
-    (1..=num_days)
-        .map(|day| {
-            let date = NaiveDate::from_ymd_opt(year, month, day).unwrap();
-            let week_number = date.iso_week().week();
-            let wd = date.weekday();
-            let is_weekend = wd == Weekday::Sat || wd == Weekday::Sun;
-            let holiday_name = holiday_map.get(&date).cloned();
-            let is_holiday = holiday_name.is_some();
-            let is_last_day = month == 12 && day == 31;
-            DayEntry {
-                day_number: day,
-                weekday: wd,
-                week_number,
-                is_weekend,
-                is_holiday,
-                is_last_day,
-                holiday_name,
-            }
-        })
-        .collect()
-}
+    months: &[Vec<NaiveDate>; 12],
+    config: &Config,
+    holidays: &[Holiday],
+) -> TemplateData {
+    let holiday_map: HashMap<NaiveDate, String> = holidays
+        .iter()
+        .filter(|h| h.date.year() == year)
+        .map(|h| (h.date, h.name.clone()))
+        .collect();
 
-fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config) -> TemplateData {
-    let day_entry_to_data = |entry: &DayEntry| -> DayData {
+    let date_to_day_data = |date: &NaiveDate| -> DayData {
+        let day = date.day();
+        let wd = date.weekday();
+        let is_weekend = wd == Weekday::Sat || wd == Weekday::Sun;
+        let holiday_name = holiday_map.get(date);
+        let is_holiday = holiday_name.is_some();
+        let is_last_day = date.month() == 12 && day == 31;
+
         let mut classes = Vec::new();
-        if entry.is_weekend || entry.is_holiday {
+        if is_weekend || is_holiday {
             classes.push("red");
         }
-        if entry.weekday == Weekday::Mon && entry.day_number != 1 {
+        if wd == Weekday::Mon && day != 1 {
             classes.push("week-start");
         }
-        if entry.is_holiday {
+        if is_holiday {
             classes.push("has-holiday");
         }
-        if entry.is_last_day {
+        if is_last_day {
             classes.push("last-day");
         }
+
         DayData {
-            day_number: entry.day_number,
-            weekday: config.day_names[entry.weekday.num_days_from_monday() as usize].clone(),
-            week_number: entry.week_number,
-            is_week_start: entry.weekday == Weekday::Mon,
-            is_weekend: entry.is_weekend,
-            is_month_start: entry.day_number == 1,
-            is_last_day: entry.is_last_day,
-            holiday_name: entry.holiday_name.clone().unwrap_or_default(),
+            day_number: day,
+            weekday: config.day_names[wd.num_days_from_monday() as usize].clone(),
+            week_number: date.iso_week().week(),
+            is_week_start: wd == Weekday::Mon,
+            is_weekend,
+            is_month_start: day == 1,
+            is_last_day,
+            holiday_name: holiday_name.cloned().unwrap_or_default(),
             css_class: classes.join(" "),
         }
     };
@@ -143,7 +131,7 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config)
             months: (0..6)
                 .map(|i| MonthData {
                     name: config.month_names[i].clone(),
-                    days: months[i].iter().map(&day_entry_to_data).collect(),
+                    days: months[i].iter().map(&date_to_day_data).collect(),
                 })
                 .collect(),
         },
@@ -151,11 +139,12 @@ fn build_template_data(year: i32, months: &[Vec<DayEntry>; 12], config: &Config)
             months: (6..12)
                 .map(|i| MonthData {
                     name: config.month_names[i].clone(),
-                    days: months[i].iter().map(&day_entry_to_data).collect(),
+                    days: months[i].iter().map(&date_to_day_data).collect(),
                 })
                 .collect(),
         },
     ];
+
     TemplateData { year, halves }
 }
 
@@ -163,70 +152,29 @@ const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
 
 fn main() {
     let cli = Cli::parse();
-    let year = cli.year;
 
+    let year = cli.year;
     if year < 1 || year > 9999 {
         eprintln!("Error: year must be between 1 and 9999");
         process::exit(1);
     }
 
-    let content = match fs::read_to_string(&cli.config) {
-        Ok(c) => c,
-        Err(e) => {
-            eprintln!("Error reading config file '{}': {}", cli.config.display(), e);
-            process::exit(1);
-        }
-    };
-    let config = match serde_json::from_str::<Config>(&content) {
-        Ok(c) => c,
-        Err(e) => {
-            eprintln!("Error parsing config JSON: {}", e);
-            process::exit(1);
-        }
-    };
+    let config: Config = read_json(&cli.config);
+    let holidays: Vec<Holiday> = cli
+        .holidays
+        .as_ref()
+        .map(|path| read_json(path))
+        .unwrap_or_default();
 
-    // Load holidays from separate file if provided
-    let holidays: Vec<Holiday> = if let Some(ref path) = cli.holidays {
-        let h_content = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("Error reading holidays file '{}': {}", path.display(), e);
-                process::exit(1);
-            }
-        };
-        match serde_json::from_str(&h_content) {
-            Ok(h) => h,
-            Err(e) => {
-                eprintln!("Error parsing holidays JSON: {}", e);
-                process::exit(1);
-            }
-        }
-    } else {
-        Vec::new()
-    };
-
-    // Build holiday lookup map
-    let mut holiday_map: HashMap<NaiveDate, String> = HashMap::new();
-    for h in &holidays {
-        match NaiveDate::parse_from_str(&h.date, "%Y-%m-%d") {
-            Ok(date) => {
-                if date.year() == year {
-                    holiday_map.insert(date, h.name.clone());
-                }
-            }
-            Err(e) => {
-                eprintln!("Warning: skipping invalid holiday date '{}': {}", h.date, e);
-            }
-        }
-    }
-
-    // Build month data
-    let months: [Vec<DayEntry>; 12] = std::array::from_fn(|i| {
-        build_month(year, (i + 1) as u32, &holiday_map)
+    let months: [Vec<NaiveDate>; 12] = std::array::from_fn(|i| {
+        let month = (i + 1) as u32;
+        let first = NaiveDate::from_ymd_opt(year, month, 1).unwrap();
+        let num_days = first.num_days_in_month() as u32;
+        (0..num_days).map(|d| first + Days::new(d as u64)).collect()
     });
 
     let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
-    let data = build_template_data(year, &months, &config);
-    let html = template.render(&data);
+    let template_data = build_template_data(year, &months, &config, &holidays);
+    let html = template.render(&template_data);
     print!("{}", html);
 }
