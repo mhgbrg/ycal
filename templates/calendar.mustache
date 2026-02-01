@@ -163,7 +163,10 @@
           {{#days}}
           <div{{#css_class}} class="{{css_class}}"{{/css_class}}>
             <div class="day-container">
-              <span class="day-label">{{day_number}} {{weekday}}</span>
+              <span class="day-label">
+                <span class="day-number">{{day_number}}</span>
+                <span class="weekday">{{weekday}}</span>
+              </span>
               {{#is_week_start}}<span class="week-number">{{week_number}}</span>{{/is_week_start}}
               {{^is_week_start}}
                 {{#is_month_start}}<span class="week-number">{{week_number}}</span>{{/is_month_start}}
