@@ -4,7 +4,11 @@
     <meta charset="utf-8">
     <title>{{year}} Calendar</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
       @page {
         size: A4 portrait;
@@ -71,7 +75,7 @@
         letter-spacing: 0.08em;
         color: #444;
         padding: 1mm 0;
-        margin-bottom: 16mm;
+        margin-bottom: 24mm;
         border-bottom: 0.5px solid #ccc;
         flex-shrink: 0;
       }
@@ -128,11 +132,10 @@
 
       @media screen {
         body {
-          display: flex;
-          justify-content: center;
           padding: 10mm;
           background: #f0f0f0;
         }
+
         .page {
           background: white;
           box-shadow:
