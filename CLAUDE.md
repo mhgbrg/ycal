@@ -40,4 +40,5 @@ Output is a self-contained HTML file with embedded CSS, designed to print on one
 
 ## Style
 
+- Rust code is formatted with `cargo fmt`.
 - Mustache templates (`.mustache` files) use 2-space indentation.

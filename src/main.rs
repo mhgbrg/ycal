@@ -73,7 +73,11 @@ fn read_json<T: DeserializeOwned>(path: &Path) -> T {
     match serde_json::from_str(&content) {
         Ok(value) => value,
         Err(e) => {
-            eprintln!("Error: unable to parse file content as JSON '{}': {}", path.display(), e);
+            eprintln!(
+                "Error: unable to parse file content as JSON '{}': {}",
+                path.display(),
+                e
+            );
             process::exit(1);
         }
     }
