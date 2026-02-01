@@ -3,3 +3,4 @@ target/
 out/
 todo.md
 *.swp
+node_modules/

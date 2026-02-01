@@ -8,23 +8,33 @@ ycal - Rust CLI tool that generates a self-contained HTML file for a printable y
 
 ## Build & Run
 
+To build:
+
 ```bash
 cargo build
-cargo run -- 2026 --config config/en.json --holidays holidays/england_and_wales_2026.html > out/en.html
-cargo run -- 2026 --config config/sv.json --holidays holidays/sweden_2026.html > out/sv.html
 ```
 
-When generating the html page, run the exact command above, do not include `2>&1 && echo "OK"`
+To run the generator:
+
+```bash
+cargo run -- 2026 --config config/en.json --holidays holidays/england_and_wales_2026.json > out/en.html
+```
+
+When generating the html page, run the exact command above, do not include things like `2>&1 && echo "OK"`.
+
+Only run the generator command you need to verify a change in the generated html. You can assume that the user is running `./dev.sh` in a separate terminal.
+
+When refactoring code without modifying its behavior, run the generator before and after the refactor and verify that there were no changes to the output.
 
 ## Architecture
 
 Single-file Rust application (`src/main.rs`) + one template (`templates/calendar.mustache`).
 
-Data flow: `main` → `build_month` (creates `DayEntry` per day) → `build_template_data` → `day_entry_to_data` (converts to `DayData` with combined `css_class` string) → ramhorns renders template → HTML to stdout.
+Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to convert each `NaiveDate` into a `DayData` with combined `css_class` string) → ramhorns renders template → HTML to stdout.
 
 Day styling uses a single `css_class: String` field that accumulates space-separated classes (e.g. `"red week-start"`). Ramhorns treats empty strings as falsy, so `{{#css_class}}` conditionals work without a separate boolean.
 
-Holidays are provided via optional JSON config (`--config`) with `{ "holidays": [{ "date": "2026-01-01", "name": "New Year" }] }`.
+Holidays are provided via an optional `--holidays` JSON file with `[{ "date": "2026-01-01", "name": "New Year" }]`.
 
 Output is a self-contained HTML file with embedded CSS, designed to print on one A4 portrait page.
 
