@@ -1,0 +1,14 @@
+[
+  { "date": "2026-01-01", "name": "Uusaasta" },
+  { "date": "2026-02-24", "name": "Iseseisvuspäev" },
+  { "date": "2026-04-03", "name": "Suur reede" },
+  { "date": "2026-04-05", "name": "Ülestõusmispühade 1. püha" },
+  { "date": "2026-05-01", "name": "Kevadpüha" },
+  { "date": "2026-05-24", "name": "Nelipühade 1. püha" },
+  { "date": "2026-06-23", "name": "Võidupüha" },
+  { "date": "2026-06-24", "name": "Jaanipäev" },
+  { "date": "2026-08-20", "name": "Taasiseseisvumispäev" },
+  { "date": "2026-12-24", "name": "Jõululaupäev" },
+  { "date": "2026-12-25", "name": "Esimene jõulupüha" },
+  { "date": "2026-12-26", "name": "Teine jõulupüha" }
+]

@@ -1,4 +1,4 @@
-use chrono::{Datelike, Days, NaiveDate, Weekday};
+use chrono::{Datelike, Days, Locale, NaiveDate, Weekday};
 use clap::Parser;
 use ramhorns::{Content, Template};
 use serde::de::DeserializeOwned;
@@ -12,21 +12,18 @@ use std::{array, fs, process};
 struct Cli {
     /// Year to generate calendar for (1-9999)
     year: i32,
-    /// Path to JSON locale file
-    #[arg(short, long)]
-    locale: PathBuf,
+    /// Locale code (e.g. en-GB, sv-SE, de-DE)
+    #[arg(short, long, default_value = "en-GB")]
+    locale: String,
+    /// Number of characters to use for day names
+    #[arg(short = 'd', long, default_value = "1")]
+    day_name_characters: usize,
     /// Path to JSON holidays file
     #[arg(long)]
     holidays: Option<PathBuf>,
     /// Path to CSS theme file
     #[arg(long, default_value = "config/themes/minimalist.css")]
     theme: PathBuf,
-}
-
-#[derive(Deserialize)]
-struct Locale {
-    month_names: [String; 12],
-    day_names: [String; 7],
 }
 
 #[derive(Deserialize)]
@@ -87,10 +84,19 @@ fn read_json<T: DeserializeOwned>(path: &Path) -> T {
     }
 }
 
+fn capitalize_first(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().to_string() + chars.as_str(),
+    }
+}
+
 fn build_template_data(
     year: i32,
     months: &[Vec<NaiveDate>; 12],
-    locale: &Locale,
+    locale: Locale,
+    day_name_chars: usize,
     holidays: &[Holiday],
     theme_css: String,
 ) -> TemplateData {
@@ -122,9 +128,12 @@ fn build_template_data(
             classes.push("last-day");
         }
 
+        let weekday_name = date.format_localized("%A", locale).to_string();
+        let weekday_abbr: String = weekday_name.chars().take(day_name_chars).collect();
+
         DayData {
             day_number: day,
-            weekday: locale.day_names[wd.num_days_from_monday() as usize].clone(),
+            weekday: capitalize_first(&weekday_abbr),
             week_number: date.iso_week().week(),
             is_week_start: wd == Weekday::Mon,
             is_weekend,
@@ -138,17 +147,25 @@ fn build_template_data(
     let halves = vec![
         HalfData {
             months: (0..6)
-                .map(|i| MonthData {
-                    name: locale.month_names[i].clone(),
-                    days: months[i].iter().map(&date_to_day_data).collect(),
+                .map(|i| {
+                    let month_date = NaiveDate::from_ymd_opt(year, (i + 1) as u32, 1).unwrap();
+                    let month_name = month_date.format_localized("%B", locale).to_string();
+                    MonthData {
+                        name: capitalize_first(&month_name),
+                        days: months[i].iter().map(&date_to_day_data).collect(),
+                    }
                 })
                 .collect(),
         },
         HalfData {
             months: (6..12)
-                .map(|i| MonthData {
-                    name: locale.month_names[i].clone(),
-                    days: months[i].iter().map(&date_to_day_data).collect(),
+                .map(|i| {
+                    let month_date = NaiveDate::from_ymd_opt(year, (i + 1) as u32, 1).unwrap();
+                    let month_name = month_date.format_localized("%B", locale).to_string();
+                    MonthData {
+                        name: capitalize_first(&month_name),
+                        days: months[i].iter().map(&date_to_day_data).collect(),
+                    }
                 })
                 .collect(),
         },
@@ -172,7 +189,18 @@ fn main() {
         process::exit(1);
     }
 
-    let locale: Locale = read_json(&cli.locale);
+    let locale_str = cli.locale.replace('-', "_");
+    let locale: Locale = match locale_str.parse() {
+        Ok(l) => l,
+        Err(_) => {
+            eprintln!(
+                "Error: unknown locale '{}'. Use a locale code like en-GB, sv-SE, de-DE.",
+                cli.locale
+            );
+            process::exit(1);
+        }
+    };
+
     let holidays: Vec<Holiday> = cli
         .holidays
         .map(|path| read_json(path.as_ref()))
@@ -198,7 +226,14 @@ fn main() {
     });
 
     let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
-    let template_data = build_template_data(year, &months, &locale, &holidays, theme_css);
+    let template_data = build_template_data(
+        year,
+        &months,
+        locale,
+        cli.day_name_characters,
+        &holidays,
+        theme_css,
+    );
     let html = template.render(&template_data);
     print!("{}", html);
 }

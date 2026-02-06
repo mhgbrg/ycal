@@ -17,7 +17,7 @@ cargo build
 To run the generator:
 
 ```bash
-cargo run -- 2026 --locale config/locale/en.json --holidays config/holidays/england_and_wales_2026.json > out/en.html
+cargo run -- 2026 --locale en-GB --holidays config/holidays/england_and_wales_2026.json > out/en.html
 ```
 
 When generating the html page, run the exact command above, do not include things like `2>&1 && echo "OK"`.

@@ -1,0 +1,18 @@
+[
+  { "date": "2026-01-01", "name": "Nýársdagur" },
+  { "date": "2026-04-02", "name": "Skírdagur" },
+  { "date": "2026-04-03", "name": "Föstudagurinn langi" },
+  { "date": "2026-04-05", "name": "Páskadagur" },
+  { "date": "2026-04-06", "name": "Annar í páskum" },
+  { "date": "2026-04-23", "name": "Sumardagurinn fyrsti" },
+  { "date": "2026-05-01", "name": "Verkalýðsdagurinn" },
+  { "date": "2026-05-14", "name": "Uppstigningardagur" },
+  { "date": "2026-05-24", "name": "Hvítasunnudagur" },
+  { "date": "2026-05-25", "name": "Annar í hvítasunnu" },
+  { "date": "2026-06-17", "name": "Þjóðhátíðardagurinn" },
+  { "date": "2026-08-03", "name": "Frídagur verslunarmanna" },
+  { "date": "2026-12-24", "name": "Aðfangadagur" },
+  { "date": "2026-12-25", "name": "Jóladagur" },
+  { "date": "2026-12-26", "name": "Annar í jólum" },
+  { "date": "2026-12-31", "name": "Gamlársdagur" }
+]

@@ -1,0 +1,12 @@
+[
+  { "date": "2026-01-01", "name": "Nova godina" },
+  { "date": "2026-01-02", "name": "Nova godina" },
+  { "date": "2026-03-01", "name": "Dan nezavisnosti" },
+  { "date": "2026-03-20", "name": "Ramazanski bajram" },
+  { "date": "2026-03-21", "name": "Ramazanski bajram" },
+  { "date": "2026-05-01", "name": "Praznik rada" },
+  { "date": "2026-05-02", "name": "Praznik rada" },
+  { "date": "2026-05-27", "name": "Kurban-bajram" },
+  { "date": "2026-05-28", "name": "Kurban-bajram" },
+  { "date": "2026-11-25", "name": "Dan državnosti" }
+]

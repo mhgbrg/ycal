@@ -1,0 +1,14 @@
+[
+  { "date": "2026-01-01", "name": "Fyrste nyttårsdag" },
+  { "date": "2026-04-02", "name": "Skjærtorsdag" },
+  { "date": "2026-04-03", "name": "Langfredag" },
+  { "date": "2026-04-05", "name": "Fyrste påskedag" },
+  { "date": "2026-04-06", "name": "Andre påskedag" },
+  { "date": "2026-05-01", "name": "Arbeidaranes internasjonale kampdag" },
+  { "date": "2026-05-14", "name": "Kristi himmelfartsdag" },
+  { "date": "2026-05-17", "name": "Grunnlovsdagen" },
+  { "date": "2026-05-24", "name": "Fyrste pinsedag" },
+  { "date": "2026-05-25", "name": "Andre pinsedag" },
+  { "date": "2026-12-25", "name": "Fyrste juledag" },
+  { "date": "2026-12-26", "name": "Andre juledag" }
+]
