@@ -18,6 +18,9 @@ struct Cli {
     /// Path to JSON holidays file
     #[arg(long)]
     holidays: Option<PathBuf>,
+    /// Path to CSS theme file
+    #[arg(long, default_value = "config/themes/minimalist.css")]
+    theme: PathBuf,
 }
 
 #[derive(Deserialize)]
@@ -36,6 +39,7 @@ struct Holiday {
 struct TemplateData {
     year: i32,
     halves: Vec<HalfData>,
+    theme_css: String,
 }
 
 #[derive(Content)]
@@ -88,6 +92,7 @@ fn build_template_data(
     months: &[Vec<NaiveDate>; 12],
     locale: &Locale,
     holidays: &[Holiday],
+    theme_css: String,
 ) -> TemplateData {
     let holiday_map: HashMap<NaiveDate, String> = holidays
         .iter()
@@ -105,7 +110,7 @@ fn build_template_data(
 
         let mut classes = Vec::new();
         if is_weekend || is_holiday {
-            classes.push("red");
+            classes.push("holiday");
         }
         if wd == Weekday::Mon && day != 1 {
             classes.push("week-start");
@@ -149,7 +154,11 @@ fn build_template_data(
         },
     ];
 
-    TemplateData { year, halves }
+    TemplateData {
+        year,
+        halves,
+        theme_css,
+    }
 }
 
 const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
@@ -169,6 +178,18 @@ fn main() {
         .map(|path| read_json(path.as_ref()))
         .unwrap_or_default();
 
+    let theme_css = match fs::read_to_string(&cli.theme) {
+        Ok(string) => string,
+        Err(e) => {
+            eprintln!(
+                "Error: unable to read theme file '{}': {}",
+                cli.theme.display(),
+                e
+            );
+            process::exit(1);
+        }
+    };
+
     let months: [Vec<NaiveDate>; 12] = array::from_fn(|i| {
         let month = (i + 1) as u32;
         let first = NaiveDate::from_ymd_opt(year, month, 1).unwrap();
@@ -177,7 +198,7 @@ fn main() {
     });
 
     let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
-    let template_data = build_template_data(year, &months, &locale, &holidays);
+    let template_data = build_template_data(year, &months, &locale, &holidays, theme_css);
     let html = template.render(&template_data);
     print!("{}", html);
 }

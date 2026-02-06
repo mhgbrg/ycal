@@ -4,3 +4,5 @@ out/
 todo.md
 *.swp
 node_modules/
+.DS_Store
+

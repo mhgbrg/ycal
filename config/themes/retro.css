@@ -1,0 +1,104 @@
+body {
+  font-family: "Special Elite", "Courier New", Courier, monospace;
+  font-size: 8pt;
+  line-height: 1.15;
+  color: #333;
+}
+
+.header {
+  height: 8mm;
+  font-size: 18pt;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  padding-left: 1mm;
+  border-bottom: 2px solid #333;
+}
+
+.half:last-child {
+  margin-bottom: 8mm;
+}
+
+.half:last-child .month > div:last-child {
+  border-bottom: 1px solid #999;
+}
+
+.month {
+  padding: 0 1.5mm;
+}
+
+.month:not(:last-child) {
+  border-right: 1px solid #666;
+}
+
+.month-name {
+  font-weight: 700;
+  font-size: 7.5pt;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #333;
+  padding: 1.6mm 0 1mm 0;
+  margin-bottom: 24mm;
+  border-bottom: 1px solid #999;
+  flex-shrink: 0;
+}
+
+.month > div:not(.month-name) {
+  font-variant-numeric: tabular-nums;
+}
+
+.day-label {
+  letter-spacing: 0.02em;
+}
+
+.holiday {
+  color: #c45;
+  background: #f0f0f0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.month > .month-name + div {
+  border-top: 1px solid #999;
+  padding-top: 1mm;
+}
+
+.week-start {
+  border-top: none;
+}
+
+.last-day {
+  font-weight: 700;
+}
+
+.holiday-name, .week-number {
+  font-size: 3pt;
+  line-height: 1;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media screen {
+  body {
+    padding: 10mm;
+    background: #e8e4df;
+  }
+
+  .page {
+    background: white;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.1),
+      0 6px 16px rgba(0,0,0,0.08);
+    border-radius: 0;
+  }
+}
+
+@media print {
+  body {
+    background: none;
+  }
+}

@@ -15,29 +15,12 @@
         margin: 0;
       }
 
-      body {
-        font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 8pt;
-        line-height: 1.15;
-        color: #333;
-      }
-
       .page {
         width: 210mm;
         height: 297mm;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-      }
-
-      .header {
-        height: 8mm;
-        font-size: 18pt;
-        font-weight: 300;
-        letter-spacing: 0.15em;
-        display: flex;
-        align-items: center;
-        padding-left: 1mm;
       }
 
       .half {
@@ -48,36 +31,10 @@
         min-height: 0;
       }
 
-      .half:last-child {
-        margin-bottom: 8mm;
-      }
-
-      .half:last-child .month > div:last-child {
-        border-bottom: 0.5px solid #ddd;
-      }
-
       .month {
         display: flex;
         flex-direction: column;
         min-height: 0;
-        padding: 0 1.5mm;
-      }
-
-      .month:not(:last-child) {
-        border-right: 0.5px solid #ddd;
-      }
-
-      .month-name {
-        font-weight: 600;
-        font-size: 7.5pt;
-        text-align: left;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #444;
-        padding: 1mm 0;
-        margin-bottom: 24mm;
-        border-bottom: 0.5px solid #ccc;
-        flex-shrink: 0;
       }
 
       .month > div:not(.month-name) {
@@ -87,7 +44,6 @@
         justify-content: center;
         padding: 0;
         min-height: 0;
-        font-variant-numeric: tabular-nums;
       }
 
       .month > div.has-holiday {
@@ -102,54 +58,20 @@
       .day-label {
         white-space: nowrap;
         flex-shrink: 0;
-        letter-spacing: 0.02em;
+        display: flex;
+        gap: 0.5ch;
       }
 
-      .red {
-        color: #c45;
+      .day-number {
+        min-width: 2ch;
+        text-align: right;
       }
 
-      .month-name + div {
-        border-top: 0.5px solid #ddd;
+      .weekday {
+        min-width: 2ch;
       }
 
-      .week-start {
-        border-top: 0.5px solid #ddd;
-      }
-
-      .last-day {
-        font-weight: 700;
-      }
-
-      .holiday-name, .week-number {
-        font-size: 3pt;
-        line-height: 1;
-        color: #999;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      @media screen {
-        body {
-          padding: 10mm;
-          background: #f0f0f0;
-        }
-
-        .page {
-          background: white;
-          box-shadow:
-            0 1px 3px rgba(0,0,0,0.08),
-            0 4px 12px rgba(0,0,0,0.06);
-          border-radius: 2px;
-        }
-      }
-
-      @media print {
-        body {
-          background: none;
-        }
-      }
+      {{{theme_css}}}
     </style>
   </head>
   <body>
@@ -168,9 +90,6 @@
                 <span class="weekday">{{weekday}}</span>
               </span>
               {{#is_week_start}}<span class="week-number">{{week_number}}</span>{{/is_week_start}}
-              {{^is_week_start}}
-                {{#is_month_start}}<span class="week-number">{{week_number}}</span>{{/is_month_start}}
-              {{/is_week_start}}
             </div>
             {{#holiday_name}}<span class="holiday-name">{{holiday_name}}</span>{{/holiday_name}}
           </div>
