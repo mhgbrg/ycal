@@ -45,6 +45,8 @@ Provide a JSON file with custom days to highlight on the calendar:
 ]
 ```
 
+Days with `"is_holiday": true` are styled in red like weekends, while `false` displays the name without any color change.
+
 Pass it with `--special-days`:
 
 ```bash
