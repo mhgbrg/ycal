@@ -66,8 +66,8 @@ struct DayData {
     is_weekend: bool,
     is_month_start: bool,
     is_last_day: bool,
+    is_holiday: bool,
     holiday_name: String,
-    css_class: String,
 }
 
 const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
@@ -145,7 +145,10 @@ fn build_template_data(
 
     let mut special_day_map: HashMap<NaiveDate, Vec<String>> = HashMap::new();
     for s in special_days.iter().filter(|s| s.date.year() == year) {
-        special_day_map.entry(s.date).or_default().push(s.name.clone());
+        special_day_map
+            .entry(s.date)
+            .or_default()
+            .push(s.name.clone());
     }
 
     let date_to_day_data = |date: &NaiveDate| -> DayData {
@@ -155,7 +158,6 @@ fn build_template_data(
         let holiday_names = holiday_map.get(date);
         let special_day_names = special_day_map.get(date);
         let is_holiday = holiday_names.is_some();
-        let is_special = special_day_names.is_some();
         let is_last_day = date.month() == 12 && day == 31;
 
         let display_name: String = holiday_names
@@ -165,20 +167,6 @@ fn build_template_data(
             .cloned()
             .collect::<Vec<_>>()
             .join(", ");
-
-        let mut classes = Vec::new();
-        if is_weekend || is_holiday {
-            classes.push("holiday");
-        }
-        if wd == Weekday::Mon && day != 1 {
-            classes.push("week-start");
-        }
-        if is_holiday || is_special {
-            classes.push("has-holiday");
-        }
-        if is_last_day {
-            classes.push("last-day");
-        }
 
         let weekday_name = date.format_localized("%A", locale).to_string();
         let weekday_abbr: String = weekday_name.chars().take(day_name_chars).collect();
@@ -191,8 +179,8 @@ fn build_template_data(
             is_weekend,
             is_month_start: day == 1,
             is_last_day,
+            is_holiday,
             holiday_name: display_name,
-            css_class: classes.join(" "),
         }
     };
 
@@ -290,4 +278,3 @@ fn read_string(path: &Path) -> String {
         }
     }
 }
-

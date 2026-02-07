@@ -83,7 +83,7 @@
         <div class="month">
           <div class="month-name">{{name}}</div>
           {{#days}}
-          <div{{#css_class}} class="{{css_class}}"{{/css_class}}>
+          <div class="{{#is_weekend}}is-weekend {{/is_weekend}}{{#is_holiday}}is-holiday {{/is_holiday}}{{#is_week_start}}is-week-start {{/is_week_start}}{{#is_month_start}}is-month-start {{/is_month_start}}{{#is_last_day}}is-last-day {{/is_last_day}}{{#holiday_name}}has-holiday{{/holiday_name}}">
             <div class="day-container">
               <span class="day-label">
                 <span class="day-number">{{day_number}}</span>

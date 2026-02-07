@@ -30,9 +30,9 @@ When refactoring code without modifying its behavior, run the generator before a
 
 Single-file Rust application (`src/main.rs`) + one template (`templates/calendar.mustache`).
 
-Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to convert each `NaiveDate` into a `DayData` with combined `css_class` string) → ramhorns renders template → HTML to stdout.
+Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to convert each `NaiveDate` into a `DayData` with semantic boolean fields) → ramhorns renders template → HTML to stdout.
 
-Day styling uses a single `css_class: String` field that accumulates space-separated classes (e.g. `"red week-start"`). Ramhorns treats empty strings as falsy, so `{{#css_class}}` conditionals work without a separate boolean.
+Day styling uses semantic boolean fields on `DayData` (`is_weekend`, `is_holiday`, `is_week_start`, `is_month_start`, `is_last_day`). The template builds CSS class strings from these bools, and theme CSS files map the class names to visual styles.
 
 Special days are provided via an optional `--special-days` JSON file with `[{ "date": "2026-01-01", "name": "Dad's birthday" }]`. These display their name but without the red holiday styling. Public holidays are fetched automatically from the Nager API based on the locale's country code.
 

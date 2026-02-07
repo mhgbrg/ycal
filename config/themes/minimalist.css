@@ -54,7 +54,7 @@ body {
   letter-spacing: 0.02em;
 }
 
-.holiday {
+.is-weekend, .is-holiday {
   color: #e63946;
 }
 
@@ -62,11 +62,11 @@ body {
   border-top: 0.5px solid #eee;
 }
 
-.week-start {
+.is-week-start:not(.is-month-start) {
   border-top: 0.5px solid #eee;
 }
 
-.last-day {
+.is-last-day {
   font-weight: 600;
 }
 
