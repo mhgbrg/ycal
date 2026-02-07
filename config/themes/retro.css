@@ -81,24 +81,3 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-@media screen {
-  body {
-    padding: 10mm;
-    background: #e8e4df;
-  }
-
-  .page {
-    background: white;
-    box-shadow:
-      0 2px 4px rgba(0,0,0,0.1),
-      0 6px 16px rgba(0,0,0,0.08);
-    border-radius: 0;
-  }
-}
-
-@media print {
-  body {
-    background: none;
-  }
-}
