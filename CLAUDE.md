@@ -17,7 +17,7 @@ cargo build
 To run the generator:
 
 ```bash
-cargo run -- 2026 --locale en-GB --holidays config/holidays/england_and_wales_2026.json > out/en.html
+cargo run -- 2026 --locale en-GB > out/en.html
 ```
 
 When generating the html page, run the exact command above, do not include things like `2>&1 && echo "OK"`.
@@ -34,7 +34,7 @@ Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to 
 
 Day styling uses a single `css_class: String` field that accumulates space-separated classes (e.g. `"red week-start"`). Ramhorns treats empty strings as falsy, so `{{#css_class}}` conditionals work without a separate boolean.
 
-Holidays are provided via an optional `--holidays` JSON file with `[{ "date": "2026-01-01", "name": "New Year" }]`.
+Special days are provided via an optional `--special-days` JSON file with `[{ "date": "2026-01-01", "name": "Dad's birthday" }]`. These display their name but without the red holiday styling. Public holidays are fetched automatically from the Nager API based on the locale's country code.
 
 Output is a self-contained HTML file with embedded CSS, designed to print on one A4 portrait page.
 
