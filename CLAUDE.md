@@ -42,3 +42,4 @@ Output is a self-contained HTML file with embedded CSS, designed to print on one
 
 - Rust code is formatted with `cargo fmt`.
 - Mustache templates (`.mustache` files) use 2-space indentation.
+- In Rust code, structs are grouped at the top (after `use` statements), followed by constants, then functions in step-down order: callers before callees (e.g. `main` first, then the functions it calls, then their helpers).
