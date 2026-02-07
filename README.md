@@ -64,8 +64,11 @@ claude -p "Fetch https://www.gov.uk/bank-holidays and extract the England bank h
 Three themes are bundled in `config/themes/`:
 
 - **minimalist** — Clean sans-serif design with minimal decoration (default)
+  ![minimalist theme](screenshots/minimalist.png)
 - **retro** — Typewriter-style monospace font with a vintage feel
+  ![retro theme](screenshots/retro.png)
 - **contemporary** — Modern sans-serif with bolder visual accents
+  ![contemporary theme](screenshots/contemporary.png)
 
 Use any CSS file as a custom theme:
 
