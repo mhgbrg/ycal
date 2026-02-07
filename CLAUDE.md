@@ -34,7 +34,7 @@ Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to 
 
 Day styling uses semantic boolean fields on `DayData` (`is_weekend`, `is_holiday`, `is_week_start`, `is_month_start`, `is_last_day`). The template builds CSS class strings from these bools, and theme CSS files map the class names to visual styles.
 
-Special days are provided via an optional `--special-days` JSON file with `[{ "date": "2026-01-01", "name": "Dad's birthday" }]`. These display their name but without the red holiday styling. Public holidays are fetched automatically from the Nager API based on the locale's country code.
+Special days are provided via an optional `--special-days` JSON file with `[{ "date": "2026-01-01", "name": "Dad's birthday", "is_holiday": false }]`. These display their name but without the red holiday styling. Public holidays are fetched automatically from the Nager API based on the locale's country code.
 
 Output is a self-contained HTML file with embedded CSS, designed to print on one A4 portrait page.
 

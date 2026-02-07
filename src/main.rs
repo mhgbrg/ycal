@@ -13,10 +13,10 @@ struct Cli {
     /// Year to generate calendar for (1-9999)
     year: i32,
     /// Locale code (e.g. en-GB, sv-SE, de-DE)
-    #[arg(short, long, default_value = "en-GB")]
+    #[arg(long, default_value = "en-GB")]
     locale: String,
     /// Number of characters to use for day names
-    #[arg(short = 'd', long, default_value = "1")]
+    #[arg(long, default_value = "1")]
     day_name_characters: usize,
     /// Path to JSON special days file
     #[arg(long)]
@@ -24,12 +24,16 @@ struct Cli {
     /// Path to CSS theme file
     #[arg(long, default_value = "config/themes/minimalist.css")]
     theme: PathBuf,
+    /// Fetch public holidays from the Nager.Date API (experimental)
+    #[arg(long)]
+    public_holidays: bool,
 }
 
 #[derive(Deserialize)]
 struct SpecialDay {
     date: NaiveDate,
     name: String,
+    is_holiday: bool,
 }
 
 #[derive(Deserialize)]
@@ -93,14 +97,17 @@ fn main() {
         }
     };
 
-    let holidays: Vec<SpecialDay> = cli
-        .locale
-        .split('-')
-        .nth(1)
-        .map(|country_code| fetch_holidays(country_code, year))
-        .unwrap_or_default();
+    let public_holidays: Vec<SpecialDay> = if cli.public_holidays {
+        cli.locale
+            .split('-')
+            .nth(1)
+            .map(|country_code| fetch_holidays(country_code, year))
+            .unwrap_or_default()
+    } else {
+        Vec::new()
+    };
 
-    let special_days: Vec<SpecialDay> = cli
+    let user_special_days: Vec<SpecialDay> = cli
         .special_days
         .as_ref()
         .map(|path| read_json(path.as_ref()))
@@ -115,14 +122,15 @@ fn main() {
         (0..num_days).map(|d| first + Days::new(d as u64)).collect()
     });
 
+    let all_special_days: Vec<SpecialDay> = public_holidays.into_iter().chain(user_special_days).collect();
+
     let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
     let template_data = build_template_data(
         year,
         &months,
         locale,
         cli.day_name_characters,
-        &holidays,
-        &special_days,
+        &all_special_days,
         theme_css,
     );
     let html = template.render(&template_data);
@@ -134,37 +142,28 @@ fn build_template_data(
     months: &[Vec<NaiveDate>; 12],
     locale: Locale,
     day_name_chars: usize,
-    holidays: &[SpecialDay],
     special_days: &[SpecialDay],
     theme_css: String,
 ) -> TemplateData {
-    let mut holiday_map: HashMap<NaiveDate, Vec<String>> = HashMap::new();
-    for h in holidays.iter().filter(|h| h.date.year() == year) {
-        holiday_map.entry(h.date).or_default().push(h.name.clone());
-    }
-
-    let mut special_day_map: HashMap<NaiveDate, Vec<String>> = HashMap::new();
-    for s in special_days.iter().filter(|s| s.date.year() == year) {
-        special_day_map
-            .entry(s.date)
-            .or_default()
-            .push(s.name.clone());
+    let mut day_map: HashMap<NaiveDate, Vec<&SpecialDay>> = HashMap::new();
+    for d in special_days {
+        day_map.entry(d.date).or_default().push(d);
     }
 
     let date_to_day_data = |date: &NaiveDate| -> DayData {
         let day = date.day();
         let wd = date.weekday();
         let is_weekend = wd == Weekday::Sat || wd == Weekday::Sun;
-        let holiday_names = holiday_map.get(date);
-        let special_day_names = special_day_map.get(date);
-        let is_holiday = holiday_names.is_some();
+        let entries = day_map.get(date);
+        let is_holiday = entries
+            .map(|e| e.iter().any(|d| d.is_holiday))
+            .unwrap_or(false);
         let is_last_day = date.month() == 12 && day == 31;
 
-        let display_name: String = holiday_names
+        let display_name: String = entries
             .into_iter()
-            .chain(special_day_names)
             .flatten()
-            .cloned()
+            .map(|d| d.name.as_str())
             .collect::<Vec<_>>()
             .join(", ");
 
@@ -250,6 +249,7 @@ fn fetch_holidays(country_code: &str, year: i32) -> Vec<SpecialDay> {
         .map(|h| SpecialDay {
             date: h.date,
             name: h.local_name,
+            is_holiday: true,
         })
         .collect()
 }
