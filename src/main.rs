@@ -22,7 +22,7 @@ struct Cli {
     #[arg(long)]
     special_days: Option<PathBuf>,
     /// Path to CSS theme file
-    #[arg(long, default_value = "config/themes/minimalist.css")]
+    #[arg(long, default_value = "themes/minimalist.css")]
     theme: PathBuf,
     /// Fetch public holidays from the Nager.Date API (experimental)
     #[arg(long)]

@@ -19,7 +19,7 @@ cargo run -- <YEAR> [OPTIONS]
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--locale` | `en-GB` | Locale code (e.g. `sv-SE`, `de-DE`) |
-| `--theme` | `config/themes/minimalist.css` | Path to CSS theme file |
+| `--theme` | `themes/minimalist.css` | Path to CSS theme file |
 | `--day-name-characters` | `1` | Number of characters for weekday abbreviation |
 | `--special-days` | — | Path to JSON file with special days |
 | `--public-holidays` | `false` | Fetch public holidays from the Nager.Date API (experimental) |
@@ -28,7 +28,7 @@ cargo run -- <YEAR> [OPTIONS]
 
 ```bash
 # Swedish calendar with retro theme
-cargo run -- 2026 --locale sv-SE --theme config/themes/retro.css > calendar.html
+cargo run -- 2026 --locale sv-SE --theme themes/retro.css > calendar.html
 
 # German calendar with default theme
 cargo run -- 2026 --locale de-DE > calendar.html
@@ -40,8 +40,8 @@ Provide a JSON file with custom days to highlight on the calendar:
 
 ```json
 [
-  { "date": "2026-06-15", "name": "Dad's birthday", "is_holiday": false },
-  { "date": "2026-12-25", "name": "Christmas", "is_holiday": true }
+  { "date": "2026-07-07", "name": "Dad's birthday", "is_holiday": false },
+  { "date": "2026-12-24", "name": "Christmas", "is_holiday": true }
 ]
 ```
 
@@ -63,13 +63,13 @@ claude -p "Fetch https://www.gov.uk/bank-holidays and extract the England bank h
 
 ## Themes
 
-Three themes are bundled in `config/themes/`:
+Three themes are bundled in `themes/`:
 
-- **minimalist** — Clean sans-serif design with minimal decoration (default)
+- **minimalist** — Clean sans-serif design with minimal decoration (themes/minimalist.css)
   ![minimalist theme](screenshots/minimalist.png)
-- **retro** — Typewriter-style monospace font with a vintage feel
+- **retro** — Typewriter-style monospace font with a vintage feel (themes/retro.css)
   ![retro theme](screenshots/retro.png)
-- **contemporary** — Modern sans-serif with bolder visual accents
+- **contemporary** — Modern sans-serif with bolder visual accents (themes/contemporary.css)
   ![contemporary theme](screenshots/contemporary.png)
 
 Use any CSS file as a custom theme:
