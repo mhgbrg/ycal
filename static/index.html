@@ -342,8 +342,6 @@
       .sd-edit-form .btn-cancel:hover {
         background: #1a1a2e;
         border-color: #4a4a65;
-        transform: none;
-        box-shadow: none;
       }
 
       .zoom-controls {
@@ -617,7 +615,7 @@
         updatePreview();
       };
 
-      function renderSpecialDays() {
+      window.renderSpecialDays = function() {
         sdList.innerHTML = specialDays.map((sd, i) =>
           '<div class="special-day-item">' +
             '<div class="sd-info">' +
@@ -628,7 +626,7 @@
             '<button class="sd-remove" onclick="removeSpecialDay(' + i + ')" title="Remove">&times;</button>' +
           '</div>'
         ).join('');
-      }
+      };
 
       window.editSpecialDay = function(index) {
         const sd = specialDays[index];
