@@ -11,7 +11,7 @@ build:
 watch:
     watchexec --print-events -w src -w static -w templates -w themes --restart -- just build
 
-serve:
+serve: build
     npx live-server pkg/
 
 [parallel]

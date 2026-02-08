@@ -2,28 +2,39 @@
 
 Tool for generating printable yearly calendars.
 
+⚠️ The code in this repo was written using Claude Code (with human oversight) ⚠️
+
 ## Themes
 
 ycal has three built-in themes:
 
 - **minimalist** — Clean sans-serif design with minimal decoration
-  ![minimalist theme](screenshots/minimalist.png)
+
+![minimalist theme](screenshots/minimalist.png)
+
 - **retro** — Typewriter-style monospace font with a vintage feel
-  ![retro theme](screenshots/retro.png)
+
+![retro theme](screenshots/retro.png)
+
 - **contemporary** — Modern sans-serif with bolder visual accents
-  ![contemporary theme](screenshots/contemporary.png)
 
-## Web UI
+![contemporary theme](screenshots/contemporary.png)
 
-The easiest way to use ycal is to use the web UI. To start the web server, run:
+## Usage
+
+ycal can be used in two ways: through a web UI and from the terminal using a CLI.
+
+### Web UI
+
+To use the web UI, run:
 
 ```bash
 just serve
 ```
 
-This opens a local server at `http://localhost:3000`.
+This starts a local web server and automatically opens the web UI in your default browser.
 
-## CLI
+### CLI
 
 The CLI can be used to generate a self-contained HTML file that can be manually printed.
 
@@ -50,6 +61,8 @@ Options:
           Print help
 ```
 
+Examples:
+
 ```bash
 # Default settings
 just gen 2026 > calendar.html
@@ -58,7 +71,7 @@ just gen 2026 > calendar.html
 just gen 2026 --locale sv-SE --day-name-characters 3 --special-days swedish_holidays_2026.json --theme themes/retro.css > calendar.html
 ```
 
-### Special days
+#### Special days
 
 The `--special-days` option expects the file to have the following format:
 
@@ -84,18 +97,23 @@ You can also easily use Claude Code to generate a special days file with public 
 claude -p "Fetch https://www.gov.uk/bank-holidays and extract the England bank holidays for 2026. Output a JSON array where each entry has \"date\" (YYYY-MM-DD), \"name\", and \"is_holiday\": true. Output only the JSON." > bank-holidays.json
 ```
 
+## Architecture
+
+The main logic for generating the calendar lives in the `src/html_gen.rs` library. This library uses [chrono](https://crates.io/crates/chrono) to generate calendar data and renders it using [ramhorns](https://crates.io/crates/ramhorns) into a self-contained HTML string.
+
+Two frontends use this shared library:
+
+- **CLI** (`src/cli.rs`) — Parses command-line arguments and writes the library output to stdout.
+- **Web UI** (`static/` + `src/wasm.rs`) — A static web page that uses a WASM build of the library. The web UI fetches public holidays directly from the [Nager.Date API](https://date.nager.at/).
+
+Theming is provided using separate CSS files. The theme CSS is embedded directly into the generated HTML, making the output fully self-contained.
+
 ## Development
 
 ```bash
-cargo build
-```
+# Web UI. Builds the code, and starts a live-reloading web server that hosts the files.
+just dev-web
 
-For live-reload during development:
-
-```bash
-# CLI. This starts a light-weight webserver that simply hosts the static files in the out/ folder.
+# CLI. This uses the CLI to generate HTML files for all themes in the out/ folder, and starts a live-reloading web server that hosts the files.
 just dev-cli
-
-# Web UI. This starts the full web server.
-just dev-server
 ```
