@@ -13,8 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install just
-        run: sudo apt install -y just
+      - name: Install tools
+        run: |
+          sudo apt install -y just
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-pack
 
       - name: Build
         run: just site
