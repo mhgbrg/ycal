@@ -1,42 +1,66 @@
 # ycal
 
-CLI tool that generates printable yearly calendars.
+Tool for generating printable yearly calendars.
 
-## Features
+## Themes
 
-- Print-optimized single-page A4 portrait layout
-- Full theming support, with three built-in themes: minimalist, retro, and contemporary
-- Month and day name localization
-- Custom special days via a JSON file
-- Experimental support for automatic inclusion of public holidays via the [Nager.Date API](https://date.nager.at/)
+ycal has three built-in themes:
 
-## Usage
+- **minimalist** — Clean sans-serif design with minimal decoration
+  ![minimalist theme](screenshots/minimalist.png)
+- **retro** — Typewriter-style monospace font with a vintage feel
+  ![retro theme](screenshots/retro.png)
+- **contemporary** — Modern sans-serif with bolder visual accents
+  ![contemporary theme](screenshots/contemporary.png)
 
-```
-cargo run -- <YEAR> [OPTIONS]
-```
+## Web UI
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--locale` | `en-GB` | Locale code (e.g. `sv-SE`, `de-DE`) |
-| `--theme` | `themes/minimalist.css` | Path to CSS theme file |
-| `--day-name-characters` | `1` | Number of characters for weekday abbreviation |
-| `--special-days` | — | Path to JSON file with special days |
-| `--public-holidays` | `false` | Fetch public holidays from the Nager.Date API (experimental) |
-
-### Examples
+The easiest way to use ycal is to use the web UI. To start the web server, run:
 
 ```bash
-# Swedish calendar with retro theme
-cargo run -- 2026 --locale sv-SE --theme themes/retro.css > calendar.html
-
-# German calendar with default theme
-cargo run -- 2026 --locale de-DE > calendar.html
+just serve
 ```
 
-## Special days
+This opens a local server at `http://localhost:3000`.
 
-Provide a JSON file with custom days to highlight on the calendar:
+## CLI
+
+The CLI can be used to generate a self-contained HTML file that can be manually printed.
+
+```
+$ just gen --help
+
+Generate a printable yearly calendar as HTML
+
+Usage: cli [OPTIONS] --theme <THEME> <YEAR>
+
+Arguments:
+  <YEAR>  Year to generate calendar for (1-9999)
+
+Options:
+      --locale <LOCALE>
+          Locale code (e.g. en-GB, sv-SE, de-DE) [default: en-GB]
+      --day-name-characters <DAY_NAME_CHARACTERS>
+          Number of characters to use for day names [default: 1]
+      --special-days <SPECIAL_DAYS>
+          Path to JSON special days file
+      --theme <THEME>
+          Path to CSS theme file
+  -h, --help
+          Print help
+```
+
+```bash
+# Default settings
+just gen 2026 > calendar.html
+
+# Swedish calendar with retro theme, special days and using three characters for day names
+just gen 2026 --locale sv-SE --day-name-characters 3 --special-days swedish_holidays_2026.json --theme themes/retro.css > calendar.html
+```
+
+### Special days
+
+The `--special-days` option expects the file to have the following format:
 
 ```json
 [
@@ -47,36 +71,22 @@ Provide a JSON file with custom days to highlight on the calendar:
 
 Days with `"is_holiday": true` are styled in red like weekends, while `false` displays the name without any color change.
 
-Pass it with `--special-days`:
+You can generate a special days file with public holidays using the bundled `holidays` script, which fetches the [Nager.Date API](https://date.nager.at/):
 
 ```bash
-cargo run -- 2026 --special-days my-days.json > calendar.html
+just holidays 2026 GB > holidays.json
+just gen 2026 --locale en-GB --theme themes/minimalist.css --special-days holidays.json > calendar.html
 ```
 
-Public holidays can be automatically included with the `--public-holidays` flag (experimental). They are fetched from the Nager.Date API based on the country code in the locale (e.g. `GB` from `en-GB`).
-
-You can also easily use Claude Code to generate a special days file with public holidays from a website. For example, to create one with England's bank holidays:
+You can also easily use Claude Code to generate a special days file with public holidays from an arbitrary website. For example, to create one with England's bank holidays:
 
 ```
 claude -p "Fetch https://www.gov.uk/bank-holidays and extract the England bank holidays for 2026. Output a JSON array where each entry has \"date\" (YYYY-MM-DD), \"name\", and \"is_holiday\": true. Output only the JSON." > bank-holidays.json
 ```
 
-## Themes
+### Custom themes
 
-Three themes are bundled in `themes/`:
-
-- **minimalist** — Clean sans-serif design with minimal decoration (themes/minimalist.css)
-  ![minimalist theme](screenshots/minimalist.png)
-- **retro** — Typewriter-style monospace font with a vintage feel (themes/retro.css)
-  ![retro theme](screenshots/retro.png)
-- **contemporary** — Modern sans-serif with bolder visual accents (themes/contemporary.css)
-  ![contemporary theme](screenshots/contemporary.png)
-
-Use any CSS file as a custom theme:
-
-```bash
-cargo run -- 2026 --theme path/to/my-theme.css > calendar.html
-```
+todo(claude): provide an example of how to use claude code to generate a new theme from a description
 
 ## Development
 
@@ -84,4 +94,12 @@ cargo run -- 2026 --theme path/to/my-theme.css > calendar.html
 cargo build
 ```
 
-For a live-reload workflow during development, run `./dev.sh` in a separate terminal.
+For live-reload during development:
+
+```bash
+# CLI. This starts a light-weight webserver that simply hosts the static files in the out/ folder.
+just dev-cli
+
+# Web UI. This starts the full web server.
+just dev-server
+```

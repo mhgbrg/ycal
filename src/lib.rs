@@ -1,6 +1,6 @@
 use chrono::{Datelike, Days, Locale, NaiveDate, Weekday};
 use ramhorns::{Content, Template};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::{array, fmt};
 
@@ -12,7 +12,7 @@ pub struct CalendarParams {
     pub special_days: Vec<SpecialDay>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct SpecialDay {
     pub date: NaiveDate,
     pub name: String,
@@ -50,7 +50,12 @@ struct DayData {
     holiday_name: String,
 }
 
-pub const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
+#[derive(Deserialize)]
+struct NagerHoliday {
+    date: NaiveDate,
+    #[serde(rename = "localName")]
+    local_name: String,
+}
 
 #[derive(Debug)]
 pub enum CalendarError {
@@ -76,6 +81,23 @@ impl fmt::Display for CalendarError {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum HolidayError {
+    Fetch(ureq::Error),
+    Parse(ureq::Error),
+}
+
+impl fmt::Display for HolidayError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HolidayError::Fetch(e) => write!(f, "failed to fetch holidays: {}", e),
+            HolidayError::Parse(e) => write!(f, "failed to parse holidays: {}", e),
+        }
+    }
+}
+
+pub const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
 
 pub fn generate_calendar(params: CalendarParams) -> Result<String, CalendarError> {
     let year = params.year;
@@ -194,4 +216,27 @@ fn capitalize_first(s: &str) -> String {
         None => String::new(),
         Some(c) => c.to_uppercase().to_string() + chars.as_str(),
     }
+}
+
+pub fn fetch_holidays(year: i32, country_code: &str) -> Result<Vec<SpecialDay>, HolidayError> {
+    let url = format!(
+        "https://date.nager.at/api/v3/PublicHolidays/{}/{}",
+        year, country_code
+    );
+
+    let response = ureq::get(&url).call().map_err(HolidayError::Fetch)?;
+
+    let nager_holidays: Vec<NagerHoliday> = response
+        .into_body()
+        .read_json()
+        .map_err(HolidayError::Parse)?;
+
+    Ok(nager_holidays
+        .into_iter()
+        .map(|h| SpecialDay {
+            date: h.date,
+            name: h.local_name,
+            is_holiday: true,
+        })
+        .collect())
 }

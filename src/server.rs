@@ -3,9 +3,9 @@ use axum::http::{header, StatusCode};
 use axum::response::{Html, IntoResponse, Json};
 use axum::routing::get;
 use axum::Router;
-use chrono::{Datelike, Local, NaiveDate};
+use chrono::{Datelike, Local};
 use clap::Parser;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use ycal::{CalendarParams, SpecialDay};
 
 #[derive(Parser)]
@@ -61,20 +61,6 @@ struct CalendarQuery {
 struct HolidaysQuery {
     year: i32,
     locale: String,
-}
-
-#[derive(Deserialize)]
-struct NagerHoliday {
-    date: NaiveDate,
-    #[serde(rename = "localName")]
-    local_name: String,
-}
-
-#[derive(Serialize)]
-struct HolidayEntry {
-    date: NaiveDate,
-    name: String,
-    is_holiday: bool,
 }
 
 fn default_year() -> i32 {
@@ -154,41 +140,8 @@ async fn holidays_handler(Query(q): Query<HolidaysQuery>) -> impl IntoResponse {
         }
     };
 
-    let url = format!(
-        "https://date.nager.at/api/v3/PublicHolidays/{}/{}",
-        q.year, country_code
-    );
-
-    let response = match ureq::get(&url).call() {
-        Ok(r) => r,
-        Err(e) => {
-            return (
-                StatusCode::BAD_GATEWAY,
-                format!("Error: failed to fetch holidays: {}", e),
-            )
-                .into_response();
-        }
-    };
-
-    let nager_holidays: Vec<NagerHoliday> = match response.into_body().read_json() {
-        Ok(h) => h,
-        Err(e) => {
-            return (
-                StatusCode::BAD_GATEWAY,
-                format!("Error: failed to parse holidays: {}", e),
-            )
-                .into_response();
-        }
-    };
-
-    let entries: Vec<HolidayEntry> = nager_holidays
-        .into_iter()
-        .map(|h| HolidayEntry {
-            date: h.date,
-            name: h.local_name,
-            is_holiday: true,
-        })
-        .collect();
-
-    Json(entries).into_response()
+    match ycal::fetch_holidays(q.year, &country_code) {
+        Ok(holidays) => Json(holidays).into_response(),
+        Err(e) => (StatusCode::BAD_GATEWAY, format!("Error: {}", e)).into_response(),
+    }
 }

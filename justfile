@@ -4,6 +4,9 @@ gen *ARGS:
 serve *ARGS:
     cargo run --bin server -- {{ARGS}}
 
+holidays *ARGS:
+    cargo run --bin holidays -- {{ARGS}}
+
 dev-cli:
     npx live-server out/ &
     watchexec -w src -w templates -w themes --restart -- \
