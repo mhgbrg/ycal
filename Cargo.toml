@@ -3,10 +3,20 @@ name = "ycal"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "cli"
+path = "src/cli.rs"
+
+[[bin]]
+name = "server"
+path = "src/server.rs"
+
 [dependencies]
+axum = "0.8"
 chrono = { version = "0.4", features = ["serde", "unstable-locales"] }
 clap = { version = "4", features = ["derive"] }
 ramhorns = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tokio = { version = "1", features = ["full"] }
 ureq = { version = "3", features = ["json"] }

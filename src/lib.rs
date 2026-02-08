@@ -1,46 +1,30 @@
 use chrono::{Datelike, Days, Locale, NaiveDate, Weekday};
-use clap::Parser;
 use ramhorns::{Content, Template};
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::{array, fs, process};
+use std::{array, fmt};
 
-#[derive(Parser)]
-#[command(about = "Generate a printable yearly calendar as HTML")]
-struct Cli {
-    /// Year to generate calendar for (1-9999)
-    year: i32,
-    /// Locale code (e.g. en-GB, sv-SE, de-DE)
-    #[arg(long, default_value = "en-GB")]
-    locale: String,
-    /// Number of characters to use for day names
-    #[arg(long, default_value = "1")]
-    day_name_characters: usize,
-    /// Path to JSON special days file
-    #[arg(long)]
-    special_days: Option<PathBuf>,
-    /// Path to CSS theme file
-    #[arg(long, default_value = "themes/minimalist.css")]
-    theme: PathBuf,
-    /// Fetch public holidays from the Nager.Date API (experimental)
-    #[arg(long)]
-    public_holidays: bool,
+pub struct CalendarParams {
+    pub year: i32,
+    pub locale: String,
+    pub day_name_characters: usize,
+    pub theme_css: String,
+    pub special_days: Vec<SpecialDay>,
+    pub public_holidays: bool,
 }
 
 #[derive(Deserialize)]
-struct SpecialDay {
-    date: NaiveDate,
-    name: String,
-    is_holiday: bool,
+pub struct SpecialDay {
+    pub date: NaiveDate,
+    pub name: String,
+    pub is_holiday: bool,
 }
 
 #[derive(Deserialize)]
-struct NagerHoliday {
-    date: NaiveDate,
+pub struct NagerHoliday {
+    pub date: NaiveDate,
     #[serde(rename = "localName")]
-    local_name: String,
+    pub local_name: String,
 }
 
 #[derive(Content)]
@@ -74,46 +58,62 @@ struct DayData {
     holiday_name: String,
 }
 
-const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
+pub const TEMPLATE_SRC: &str = include_str!("../templates/calendar.mustache");
 
-fn main() {
-    let cli = Cli::parse();
+#[derive(Debug)]
+pub enum CalendarError {
+    InvalidYear(i32),
+    InvalidLocale(String),
+    HolidayFetch(String),
+    Template(String),
+}
 
-    let year = cli.year;
+impl fmt::Display for CalendarError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CalendarError::InvalidYear(y) => {
+                write!(f, "year must be between 1 and 9999, got {}", y)
+            }
+            CalendarError::InvalidLocale(l) => {
+                write!(
+                    f,
+                    "unknown locale '{}'. Use a locale code like en-GB, sv-SE, de-DE.",
+                    l
+                )
+            }
+            CalendarError::HolidayFetch(e) => write!(f, "failed to fetch holidays: {}", e),
+            CalendarError::Template(e) => write!(f, "invalid template: {}", e),
+        }
+    }
+}
+
+pub fn generate_calendar(params: CalendarParams) -> Result<String, CalendarError> {
+    let year = params.year;
     if year < 1 || year > 9999 {
-        eprintln!("Error: year must be between 1 and 9999");
-        process::exit(1);
+        return Err(CalendarError::InvalidYear(year));
     }
 
-    let locale_str = cli.locale.replace('-', "_");
-    let locale: Locale = match locale_str.parse() {
-        Ok(l) => l,
-        Err(_) => {
-            eprintln!(
-                "Error: unknown locale '{}'. Use a locale code like en-GB, sv-SE, de-DE.",
-                cli.locale
-            );
-            process::exit(1);
-        }
-    };
+    let locale_str = params.locale.replace('-', "_");
+    let locale: Locale = locale_str
+        .parse()
+        .map_err(|_| CalendarError::InvalidLocale(params.locale.clone()))?;
 
-    let public_holidays: Vec<SpecialDay> = if cli.public_holidays {
-        cli.locale
+    let public_holidays: Vec<SpecialDay> = if params.public_holidays {
+        params
+            .locale
             .split('-')
             .nth(1)
             .map(|country_code| fetch_holidays(country_code, year))
+            .transpose()?
             .unwrap_or_default()
     } else {
         Vec::new()
     };
 
-    let user_special_days: Vec<SpecialDay> = cli
-        .special_days
-        .as_ref()
-        .map(|path| read_json(path.as_ref()))
-        .unwrap_or_default();
-
-    let theme_css = read_string(&cli.theme);
+    let all_special_days: Vec<SpecialDay> = public_holidays
+        .into_iter()
+        .chain(params.special_days)
+        .collect();
 
     let months: [Vec<NaiveDate>; 12] = array::from_fn(|i| {
         let month = (i + 1) as u32;
@@ -122,19 +122,17 @@ fn main() {
         (0..num_days).map(|d| first + Days::new(d as u64)).collect()
     });
 
-    let all_special_days: Vec<SpecialDay> = public_holidays.into_iter().chain(user_special_days).collect();
-
-    let template = Template::new(TEMPLATE_SRC).expect("invalid calendar template");
+    let template =
+        Template::new(TEMPLATE_SRC).map_err(|e| CalendarError::Template(e.to_string()))?;
     let template_data = build_template_data(
         year,
         &months,
         locale,
-        cli.day_name_characters,
+        params.day_name_characters,
         &all_special_days,
-        theme_css,
+        params.theme_css,
     );
-    let html = template.render(&template_data);
-    print!("{}", html);
+    Ok(template.render(&template_data))
 }
 
 fn build_template_data(
@@ -225,56 +223,24 @@ fn capitalize_first(s: &str) -> String {
     }
 }
 
-fn fetch_holidays(country_code: &str, year: i32) -> Vec<SpecialDay> {
+pub fn fetch_holidays(country_code: &str, year: i32) -> Result<Vec<SpecialDay>, CalendarError> {
     let url = format!(
         "https://date.nager.at/api/v3/PublicHolidays/{}/{}",
         year, country_code
     );
-    let mut response = match ureq::get(&url).call() {
-        Ok(r) => r,
-        Err(e) => {
-            eprintln!("Error: failed to fetch holidays from API: {}", e);
-            process::exit(1);
-        }
-    };
-    let nager_holidays: Vec<NagerHoliday> = match response.body_mut().read_json() {
-        Ok(h) => h,
-        Err(e) => {
-            eprintln!("Error: failed to parse holidays from API: {}", e);
-            process::exit(1);
-        }
-    };
-    nager_holidays
+    let mut response = ureq::get(&url)
+        .call()
+        .map_err(|e| CalendarError::HolidayFetch(e.to_string()))?;
+    let nager_holidays: Vec<NagerHoliday> = response
+        .body_mut()
+        .read_json()
+        .map_err(|e| CalendarError::HolidayFetch(e.to_string()))?;
+    Ok(nager_holidays
         .into_iter()
         .map(|h| SpecialDay {
             date: h.date,
             name: h.local_name,
             is_holiday: true,
         })
-        .collect()
-}
-
-fn read_json<T: DeserializeOwned>(path: &Path) -> T {
-    let content = read_string(path);
-    match serde_json::from_str(&content) {
-        Ok(value) => value,
-        Err(e) => {
-            eprintln!(
-                "Error: unable to parse file content as JSON '{}': {}",
-                path.display(),
-                e
-            );
-            process::exit(1);
-        }
-    }
-}
-
-fn read_string(path: &Path) -> String {
-    match fs::read_to_string(path) {
-        Ok(string) => string,
-        Err(e) => {
-            eprintln!("Error: unable to read file '{}': {}", path.display(), e);
-            process::exit(1);
-        }
-    }
+        .collect())
 }

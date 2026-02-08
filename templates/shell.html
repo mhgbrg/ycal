@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>ycal</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        background: #e4e0dc;
+      }
+
+      .controls {
+        width: 280px;
+        padding: 24px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+        flex-shrink: 0;
+      }
+
+      .controls h1 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .field label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #555;
+      }
+
+      .field input,
+      .field select {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .field-row input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+      }
+
+      .field-row label {
+        font-size: 14px;
+        color: #333;
+      }
+
+      button {
+        padding: 8px 16px;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #555;
+      }
+
+      .special-day-add {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .special-day-add input[type="date"],
+      .special-day-add input[type="text"] {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .special-day-add-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .small-label {
+        font-size: 13px;
+        color: #555;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .small-label input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+      }
+
+      .btn-small {
+        padding: 4px 10px;
+        font-size: 13px;
+      }
+
+      .special-day-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 13px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .special-day-item .sd-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .special-day-item .sd-date {
+        color: #999;
+        font-size: 11px;
+      }
+
+      .special-day-item .sd-name {
+        color: #333;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .special-day-item .sd-remove {
+        background: none;
+        color: #999;
+        border: none;
+        padding: 2px 6px;
+        font-size: 16px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .special-day-item .sd-remove:hover {
+        color: #333;
+        background: none;
+      }
+
+      .special-day-item .sd-edit {
+        background: none;
+        color: #999;
+        border: none;
+        padding: 2px 6px;
+        font-size: 13px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .special-day-item .sd-edit:hover {
+        color: #333;
+        background: none;
+      }
+
+      .sd-edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100%;
+        padding: 4px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .sd-edit-form input[type="date"],
+      .sd-edit-form input[type="text"] {
+        padding: 4px 6px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+
+      .sd-edit-form .sd-edit-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .sd-edit-form .btn-small {
+        padding: 3px 8px;
+        font-size: 12px;
+      }
+
+      .sd-edit-form .btn-cancel {
+        background: #888;
+      }
+
+      .zoom-controls {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 10;
+      }
+
+      .zoom-controls button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        font-size: 18px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .zoom-controls span {
+        font-size: 13px;
+        color: #555;
+        min-width: 44px;
+        text-align: center;
+        cursor: pointer;
+      }
+
+      .zoom-controls span:hover {
+        color: #000;
+      }
+
+      @media print {
+        .zoom-controls {
+          display: none !important;
+        }
+      }
+
+      .preview {
+        flex: 1;
+        min-width: 0;
+        overflow: auto;
+      }
+
+      .iframe-wrapper {
+        position: relative;
+        margin: auto;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      }
+
+      .iframe-wrapper iframe {
+        border: none;
+        width: 210mm;
+        height: 297mm;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: top left;
+        background: white;
+      }
+
+      @media print {
+        @page {
+          margin: 0;
+        }
+
+        body {
+          margin: 0;
+        }
+
+        .controls {
+          display: none !important;
+        }
+
+        .preview {
+          padding: 0 !important;
+        }
+
+        .iframe-wrapper {
+          width: 100vw !important;
+          height: 100vh !important;
+        }
+
+        .iframe-wrapper iframe {
+          width: 100vw;
+          height: 100vh;
+          transform: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <h1>ycal</h1>
+
+      <div class="field">
+        <label for="year">Year</label>
+        <input type="number" id="year" min="1" max="9999">
+      </div>
+
+      <div class="field">
+        <label for="locale">Locale</label>
+        <select id="locale">
+          <option value="da-DK">Danish (da-DK)</option>
+          <option value="nl-NL">Dutch (nl-NL)</option>
+          <option value="en-GB" selected>English (en-GB)</option>
+          <option value="en-US">English (en-US)</option>
+          <option value="fi-FI">Finnish (fi-FI)</option>
+          <option value="fr-FR">French (fr-FR)</option>
+          <option value="de-DE">German (de-DE)</option>
+          <option value="it-IT">Italian (it-IT)</option>
+          <option value="ja-JP">Japanese (ja-JP)</option>
+          <option value="nb-NO">Norwegian (nb-NO)</option>
+          <option value="pl-PL">Polish (pl-PL)</option>
+          <option value="pt-PT">Portuguese (pt-PT)</option>
+          <option value="es-ES">Spanish (es-ES)</option>
+          <option value="sv-SE">Swedish (sv-SE)</option>
+          <option value="">Custom...</option>
+        </select>
+        <input id="locale-custom" placeholder="e.g. sv-SE" style="display:none">
+      </div>
+
+      <div class="field">
+        <label for="theme">Theme</label>
+        <select id="theme">
+          <option value="contemporary">Contemporary</option>
+          <option value="minimalist" selected>Minimalist</option>
+          <option value="retro">Retro</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="day-chars">Number of characters for day names</label>
+        <input type="number" id="day-chars" min="1" value="1">
+      </div>
+
+      <div class="field-row">
+        <input type="checkbox" id="holidays">
+        <label for="holidays">Public holidays (experimental)</label>
+      </div>
+
+      <div class="field">
+        <label>Special days</label>
+        <div id="special-days-list"></div>
+        <div class="special-day-add">
+          <input type="date" id="sd-date">
+          <input type="text" id="sd-name" placeholder="Name">
+          <div class="special-day-add-row">
+            <label class="small-label"><input type="checkbox" id="sd-holiday"> Holiday</label>
+            <button class="btn-small" onclick="addSpecialDay()">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:auto;display:flex;gap:8px">
+        <button onclick="resetState()" style="background:#888;flex:1">&#x21BA; Reset</button>
+        <button onclick="printCalendar()" style="flex:1">&#x1F5A8; Print</button>
+      </div>
+    </div>
+
+    <div class="preview">
+      <div class="iframe-wrapper" id="iframe-wrapper">
+        <iframe id="preview-frame"></iframe>
+      </div>
+    </div>
+
+    <div class="zoom-controls">
+      <button onclick="zoomOut()" title="Zoom out">−</button>
+      <span id="zoom-label" onclick="resetZoom()" title="Reset zoom">100%</span>
+      <button onclick="zoomIn()" title="Zoom in">+</button>
+    </div>
+
+    <script>
+      const iframe = document.getElementById('preview-frame');
+      const yearInput = document.getElementById('year');
+      const localeSelect = document.getElementById('locale');
+      const localeCustom = document.getElementById('locale-custom');
+      const themeSelect = document.getElementById('theme');
+      const dayCharsInput = document.getElementById('day-chars');
+      const holidaysCheckbox = document.getElementById('holidays');
+
+      function getLocale() {
+        return localeCustom.style.display === 'none' ? localeSelect.value : localeCustom.value;
+      }
+
+      const specialDays = [];
+      const sdDateInput = document.getElementById('sd-date');
+      const sdNameInput = document.getElementById('sd-name');
+      const sdHolidayCheckbox = document.getElementById('sd-holiday');
+      const sdList = document.getElementById('special-days-list');
+
+      sdDateInput.addEventListener('input', () => { sdDateInput.style.borderColor = ''; });
+      sdNameInput.addEventListener('input', () => { sdNameInput.style.borderColor = ''; });
+
+      function addSpecialDay() {
+        const date = sdDateInput.value;
+        const name = sdNameInput.value.trim();
+        sdDateInput.style.borderColor = date ? '' : '#e53e3e';
+        sdNameInput.style.borderColor = name ? '' : '#e53e3e';
+        if (!date || !name) return;
+        specialDays.push({ date, name, is_holiday: sdHolidayCheckbox.checked });
+        sdDateInput.value = '';
+        sdNameInput.value = '';
+        sdHolidayCheckbox.checked = false;
+        renderSpecialDays();
+        updatePreview();
+      }
+
+      function removeSpecialDay(index) {
+        specialDays.splice(index, 1);
+        renderSpecialDays();
+        updatePreview();
+      }
+
+      function renderSpecialDays() {
+        sdList.innerHTML = specialDays.map((sd, i) =>
+          '<div class="special-day-item">' +
+            '<div class="sd-info">' +
+              '<span class="sd-name">' + sd.name + (sd.is_holiday ? ' (holiday)' : '') + '</span>' +
+              '<span class="sd-date">' + sd.date + '</span>' +
+            '</div>' +
+            '<button class="sd-edit" onclick="editSpecialDay(' + i + ')" title="Edit">&#9998;</button>' +
+            '<button class="sd-remove" onclick="removeSpecialDay(' + i + ')" title="Remove">&times;</button>' +
+          '</div>'
+        ).join('');
+      }
+
+      function editSpecialDay(index) {
+        const sd = specialDays[index];
+        const item = sdList.children[index];
+        item.outerHTML =
+          '<div class="sd-edit-form">' +
+            '<input type="date" id="sd-edit-date-' + index + '" value="' + sd.date + '">' +
+            '<input type="text" id="sd-edit-name-' + index + '" value="' + sd.name.replace(/"/g, '&quot;') + '">' +
+            '<div class="sd-edit-buttons">' +
+              '<label class="small-label"><input type="checkbox" id="sd-edit-holiday-' + index + '"' + (sd.is_holiday ? ' checked' : '') + '> Holiday</label>' +
+              '<div style="display:flex;gap:4px">' +
+                '<button class="btn-small btn-cancel" onclick="renderSpecialDays()">Cancel</button>' +
+                '<button class="btn-small" onclick="saveSpecialDay(' + index + ')">Save</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      function saveSpecialDay(index) {
+        const date = document.getElementById('sd-edit-date-' + index).value;
+        const name = document.getElementById('sd-edit-name-' + index).value.trim();
+        if (!date || !name) return;
+        specialDays[index] = { date, name, is_holiday: document.getElementById('sd-edit-holiday-' + index).checked };
+        renderSpecialDays();
+        saveState();
+        updatePreview();
+      }
+
+      function buildUrl() {
+        const params = new URLSearchParams({
+          year: yearInput.value,
+          locale: getLocale(),
+          theme: themeSelect.value,
+          day_name_characters: dayCharsInput.value,
+        });
+        if (holidaysCheckbox.checked) {
+          params.set('public_holidays', 'true');
+        }
+        if (specialDays.length > 0) {
+          params.set('special_days', JSON.stringify(specialDays));
+        }
+        return '/calendar?' + params.toString();
+      }
+
+      function saveState() {
+        const state = {
+          year: parseInt(yearInput.value),
+          locale: localeSelect.value,
+          localeCustom: localeCustom.value,
+          theme: themeSelect.value,
+          dayChars: parseInt(dayCharsInput.value),
+          holidays: holidaysCheckbox.checked,
+          specialDays: specialDays,
+        };
+        try { localStorage.setItem('ycal-state', JSON.stringify(state)); } catch(e) {}
+        try { history.replaceState(null, '', '#' + btoa(JSON.stringify(state))); } catch(e) {}
+      }
+
+      function loadState() {
+        let state;
+        if (location.hash.length > 1) {
+          try { state = JSON.parse(atob(location.hash.slice(1))); } catch(e) {}
+        }
+        if (!state) {
+          try { state = JSON.parse(localStorage.getItem('ycal-state')); } catch(e) {}
+        }
+        if (!state) {
+          yearInput.value = new Date().getFullYear();
+          return;
+        }
+        yearInput.value = state.year || new Date().getFullYear();
+        if (state.locale !== undefined) localeSelect.value = state.locale;
+        if (state.locale === '') {
+          localeCustom.style.display = '';
+          localeCustom.value = state.localeCustom || '';
+        }
+        if (state.theme) themeSelect.value = state.theme;
+        if (state.dayChars) dayCharsInput.value = state.dayChars;
+        holidaysCheckbox.checked = !!state.holidays;
+        if (Array.isArray(state.specialDays)) {
+          specialDays.length = 0;
+          state.specialDays.forEach(sd => specialDays.push(sd));
+          renderSpecialDays();
+        }
+      }
+
+      function resetState() {
+        try { localStorage.removeItem('ycal-state'); } catch(e) {}
+        history.replaceState(null, '', location.pathname);
+        yearInput.value = new Date().getFullYear();
+        localeSelect.value = 'en-GB';
+        localeCustom.style.display = 'none';
+        localeCustom.value = '';
+        themeSelect.value = 'minimalist';
+        dayCharsInput.value = 1;
+        holidaysCheckbox.checked = false;
+        specialDays.length = 0;
+        renderSpecialDays();
+        updatePreview();
+      }
+
+      function updatePreview() {
+        iframe.src = buildUrl();
+        saveState();
+      }
+
+      let yearTimeout;
+      yearInput.addEventListener('input', () => {
+        clearTimeout(yearTimeout);
+        yearTimeout = setTimeout(updatePreview, 400);
+      });
+
+      localeSelect.addEventListener('change', () => {
+        if (localeSelect.value === '') {
+          localeCustom.style.display = '';
+          localeCustom.focus();
+        } else {
+          localeCustom.style.display = 'none';
+          localeCustom.value = '';
+          updatePreview();
+        }
+      });
+
+      let localeCustomTimeout;
+      localeCustom.addEventListener('input', () => {
+        clearTimeout(localeCustomTimeout);
+        localeCustomTimeout = setTimeout(updatePreview, 400);
+      });
+
+      themeSelect.addEventListener('change', updatePreview);
+      let dayCharsTimeout;
+      dayCharsInput.addEventListener('input', () => {
+        clearTimeout(dayCharsTimeout);
+        dayCharsTimeout = setTimeout(updatePreview, 400);
+      });
+      holidaysCheckbox.addEventListener('change', updatePreview);
+
+      function printCalendar() {
+        iframe.contentWindow.print();
+      }
+
+      let zoomLevel = 1.0;
+      const zoomLabel = document.getElementById('zoom-label');
+
+      function zoomIn() {
+        zoomLevel = Math.min(zoomLevel + 0.25, 3.0);
+        applyZoom();
+      }
+
+      function zoomOut() {
+        zoomLevel = Math.max(zoomLevel - 0.25, 0.25);
+        applyZoom();
+      }
+
+      function resetZoom() {
+        zoomLevel = 1.0;
+        applyZoom();
+      }
+
+      function applyZoom() {
+        zoomLabel.textContent = Math.round(zoomLevel * 100) + '%';
+        scalePreview();
+      }
+
+      function scalePreview() {
+        const container = document.querySelector('.preview');
+        const wrapper = document.getElementById('iframe-wrapper');
+        const pad = 48;
+        const availW = container.clientWidth - pad;
+        const availH = container.clientHeight - pad;
+        const iframeW = 793.7;  // 210mm in px at 96dpi
+        const iframeH = 1122.5; // 297mm in px at 96dpi
+        const fitScale = Math.min(availW / iframeW, availH / iframeH, 1);
+        const scale = fitScale * zoomLevel;
+        iframe.style.transform = 'scale(' + scale + ')';
+        wrapper.style.width = (iframeW * scale) + 'px';
+        wrapper.style.height = (iframeH * scale) + 'px';
+        container.style.paddingTop = zoomLevel <= 1.0 ? (pad / 2) + 'px' : '0';
+      }
+
+      window.addEventListener('resize', scalePreview);
+      iframe.addEventListener('load', scalePreview);
+      loadState();
+      scalePreview();
+      updatePreview();
+    </script>
+  </body>
+</html>

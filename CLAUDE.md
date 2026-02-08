@@ -14,21 +14,27 @@ To build:
 cargo build
 ```
 
-To run the generator:
+To run the CLI generator:
 
 ```bash
-cargo run -- 2026 --locale en-GB > out/en.html
+just cli 2026 --locale en-GB --theme themes/minimalist.css > out/en.html
+```
+
+To run the web server:
+
+```bash
+just server
 ```
 
 When generating the html page, run the exact command above, do not include things like `2>&1 && echo "OK"`.
 
-Only run the generator command you need to verify a change in the generated html. You can assume that the user is running `./dev.sh` in a separate terminal.
+Only run the generator command you need to verify a change in the generated html. You can assume that the user is running `just dev-cli` or `just dev-server` in a separate terminal.
 
 When refactoring code without modifying its behavior, run the generator before and after the refactor and verify that there were no changes to the output.
 
 ## Architecture
 
-Single-file Rust application (`src/main.rs`) + one template (`templates/calendar.mustache`).
+Two binaries (`src/cli.rs` for CLI generation, `src/server.rs` for the web server) + a shared library (`src/lib.rs`) + one template (`templates/calendar.mustache`).
 
 Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to convert each `NaiveDate` into a `DayData` with semantic boolean fields) → ramhorns renders template → HTML to stdout.
 
