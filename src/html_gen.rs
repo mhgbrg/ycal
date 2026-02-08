@@ -1,3 +1,6 @@
+#[cfg(target_arch = "wasm32")]
+mod wasm;
+
 use chrono::{Datelike, Days, Locale, NaiveDate, Weekday};
 use ramhorns::{Content, Template};
 use serde::{Deserialize, Serialize};
@@ -50,13 +53,6 @@ struct DayData {
     holiday_name: String,
 }
 
-#[derive(Deserialize)]
-struct NagerHoliday {
-    date: NaiveDate,
-    #[serde(rename = "localName")]
-    local_name: String,
-}
-
 #[derive(Debug)]
 pub enum CalendarError {
     InvalidYear(i32),
@@ -78,21 +74,6 @@ impl fmt::Display for CalendarError {
                 )
             }
             CalendarError::Template(e) => write!(f, "invalid template: {}", e),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum HolidayError {
-    Fetch(ureq::Error),
-    Parse(ureq::Error),
-}
-
-impl fmt::Display for HolidayError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            HolidayError::Fetch(e) => write!(f, "failed to fetch holidays: {}", e),
-            HolidayError::Parse(e) => write!(f, "failed to parse holidays: {}", e),
         }
     }
 }
@@ -218,25 +199,3 @@ fn capitalize_first(s: &str) -> String {
     }
 }
 
-pub fn fetch_holidays(year: i32, country_code: &str) -> Result<Vec<SpecialDay>, HolidayError> {
-    let url = format!(
-        "https://date.nager.at/api/v3/PublicHolidays/{}/{}",
-        year, country_code
-    );
-
-    let response = ureq::get(&url).call().map_err(HolidayError::Fetch)?;
-
-    let nager_holidays: Vec<NagerHoliday> = response
-        .into_body()
-        .read_json()
-        .map_err(HolidayError::Parse)?;
-
-    Ok(nager_holidays
-        .into_iter()
-        .map(|h| SpecialDay {
-            date: h.date,
-            name: h.local_name,
-            is_holiday: true,
-        })
-        .collect())
-}

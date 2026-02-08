@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-ycal - Rust CLI tool that generates a self-contained HTML file for a printable yearly calendar (A4 portrait).
+ycal - Rust CLI tool and WASM-powered web app that generates a self-contained HTML file for a printable yearly calendar (A4 portrait).
 
 ## Build & Run
 
@@ -20,27 +20,35 @@ To run the CLI generator:
 just gen 2026 --locale en-GB --theme themes/minimalist.css > out/en.html
 ```
 
-To run the web server:
+To build the WASM module:
 
 ```bash
-just serve
+just wasm
+```
+
+To run the web app locally (builds WASM + starts live-server):
+
+```bash
+just dev
 ```
 
 When generating the html page, run the exact command above, do not include things like `2>&1 && echo "OK"`.
 
-Only run the generator command you need to verify a change in the generated html. You can assume that the user is running `just dev-cli` or `just dev-server` in a separate terminal.
+Only run the generator command you need to verify a change in the generated html. You can assume that the user is running `just dev-cli` or `just dev` in a separate terminal.
 
 When refactoring code without modifying its behavior, run the generator before and after the refactor and verify that there were no changes to the output.
 
 ## Architecture
 
-Two binaries (`src/cli.rs` for CLI generation, `src/server.rs` for the web server) + a shared library (`src/lib.rs`) + one template (`templates/calendar.mustache`).
+Two binaries (`src/cli.rs` for CLI generation, `src/holidays.rs` for fetching public holidays) + a shared library (`src/html_gen.rs`) + a WASM entry point (`src/wasm.rs`) + one template (`templates/calendar.mustache`).
+
+The web app (`templates/index.html`) loads the WASM module directly — no backend server needed. It calls `generate_calendar()` from WASM and fetches public holidays directly from the Nager API (CORS-enabled).
 
 Data flow: `main` → `build_template_data` (uses `date_to_day_data` closure to convert each `NaiveDate` into a `DayData` with semantic boolean fields) → ramhorns renders template → HTML to stdout.
 
 Day styling uses semantic boolean fields on `DayData` (`is_weekend`, `is_holiday`, `is_week_start`, `is_month_start`, `is_last_day`). The template builds CSS class strings from these bools, and theme CSS files map the class names to visual styles.
 
-Special days are provided via an optional `--special-days` JSON file with `[{ "date": "2026-01-01", "name": "Dad's birthday", "is_holiday": false }]`. These display their name but without the red holiday styling. The web server has a `/holidays` proxy endpoint that fetches public holidays from the Nager API so users can review and edit them before generating.
+Special days are provided via an optional `--special-days` JSON file with `[{ "date": "2026-01-01", "name": "Dad's birthday", "is_holiday": false }]`. These display their name but without the red holiday styling.
 
 Output is a self-contained HTML file with embedded CSS, designed to print on one A4 portrait page.
 

@@ -1,6 +1,7 @@
 .claude/
 target/
 out/
+pkg/
 todo.md
 *.swp
 node_modules/

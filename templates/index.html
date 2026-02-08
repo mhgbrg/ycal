@@ -541,7 +541,9 @@
       <button onclick="zoomIn()" title="Zoom in">+</button>
     </div>
 
-    <script>
+    <script type="module">
+      import init, { generate_calendar } from './ycal.js';
+
       const iframe = document.getElementById('preview-frame');
       const yearInput = document.getElementById('year');
       const localeSelect = document.getElementById('locale');
@@ -563,7 +565,7 @@
       sdDateInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addSpecialDay(); });
       sdNameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addSpecialDay(); });
 
-      function addSpecialDay() {
+      window.addSpecialDay = function() {
         const date = sdDateInput.value;
         const name = sdNameInput.value.trim();
         sdDateInput.style.borderColor = date ? '' : '#e53e3e';
@@ -575,24 +577,24 @@
         sdHolidayCheckbox.checked = false;
         renderSpecialDays();
         updatePreview();
-      }
+      };
 
-      async function loadPublicHolidays() {
+      window.loadPublicHolidays = async function() {
         const btn = document.getElementById('load-holidays-btn');
         const locale = getLocale();
         const year = yearInput.value;
+        const countryCode = locale.split('-')[1];
+        if (!countryCode) return;
         btn.disabled = true;
         btn.textContent = 'Loading\u2026';
         try {
-          const res = await fetch('/holidays?year=' + encodeURIComponent(year) + '&locale=' + encodeURIComponent(locale));
+          const res = await fetch('https://date.nager.at/api/v3/PublicHolidays/' + encodeURIComponent(year) + '/' + encodeURIComponent(countryCode));
           if (!res.ok) throw new Error(await res.text());
           const holidays = await res.json();
           const existing = new Set(specialDays.map(sd => sd.date));
-          let added = 0;
           for (const h of holidays) {
             if (!existing.has(h.date)) {
-              specialDays.push(h);
-              added++;
+              specialDays.push({ date: h.date, name: h.localName, is_holiday: true });
             }
           }
           renderSpecialDays();
@@ -601,19 +603,19 @@
         }
         btn.textContent = 'Load';
         btn.disabled = false;
-      }
+      };
 
-      function removeSpecialDay(index) {
+      window.removeSpecialDay = function(index) {
         specialDays.splice(index, 1);
         renderSpecialDays();
         updatePreview();
-      }
+      };
 
-      function clearSpecialDays() {
+      window.clearSpecialDays = function() {
         specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
-      }
+      };
 
       function renderSpecialDays() {
         sdList.innerHTML = specialDays.map((sd, i) =>
@@ -628,7 +630,7 @@
         ).join('');
       }
 
-      function editSpecialDay(index) {
+      window.editSpecialDay = function(index) {
         const sd = specialDays[index];
         const item = sdList.children[index];
         item.outerHTML =
@@ -643,9 +645,9 @@
               '</div>' +
             '</div>' +
           '</div>';
-      }
+      };
 
-      function saveSpecialDay(index) {
+      window.saveSpecialDay = function(index) {
         const date = document.getElementById('sd-edit-date-' + index).value;
         const name = document.getElementById('sd-edit-name-' + index).value.trim();
         if (!date || !name) return;
@@ -653,20 +655,7 @@
         renderSpecialDays();
         saveState();
         updatePreview();
-      }
-
-      function buildUrl() {
-        const params = new URLSearchParams({
-          year: yearInput.value,
-          locale: getLocale(),
-          theme: themeSelect.value,
-          day_name_characters: dayCharsInput.value,
-        });
-        if (specialDays.length > 0) {
-          params.set('special_days', JSON.stringify(specialDays));
-        }
-        return '/calendar?' + params.toString();
-      }
+      };
 
       function saveState() {
         const state = {
@@ -708,7 +697,7 @@
         }
       }
 
-      function resetState() {
+      window.resetState = function() {
         try { localStorage.removeItem('ycal-state'); } catch(e) {}
         history.replaceState(null, '', location.pathname);
         yearInput.value = new Date().getFullYear();
@@ -720,10 +709,22 @@
         specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
-      }
+      };
 
       function updatePreview() {
-        iframe.src = buildUrl();
+        const params = JSON.stringify({
+          year: parseInt(yearInput.value),
+          locale: getLocale(),
+          theme: themeSelect.value,
+          day_name_characters: parseInt(dayCharsInput.value),
+          special_days: specialDays,
+        });
+        try {
+          const html = generate_calendar(params);
+          iframe.srcdoc = html;
+        } catch (e) {
+          iframe.srcdoc = '<pre style="color:red;padding:1em">' + e + '</pre>';
+        }
         saveState();
       }
 
@@ -757,27 +758,27 @@
         dayCharsTimeout = setTimeout(updatePreview, 400);
       });
 
-      function printCalendar() {
+      window.printCalendar = function() {
         iframe.contentWindow.print();
-      }
+      };
 
       let zoomLevel = 1.0;
       const zoomLabel = document.getElementById('zoom-label');
 
-      function zoomIn() {
+      window.zoomIn = function() {
         zoomLevel = Math.min(zoomLevel + 0.25, 3.0);
         applyZoom();
-      }
+      };
 
-      function zoomOut() {
+      window.zoomOut = function() {
         zoomLevel = Math.max(zoomLevel - 0.25, 1.0);
         applyZoom();
-      }
+      };
 
-      function resetZoom() {
+      window.resetZoom = function() {
         zoomLevel = 1.0;
         applyZoom();
-      }
+      };
 
       function applyZoom() {
         zoomLabel.textContent = zoomLevel === 1.0 ? 'Auto' : Math.round(zoomLevel * 100) + '%';
@@ -803,6 +804,8 @@
 
       window.addEventListener('resize', () => { if (zoomLevel === 1.0) scalePreview(); });
       iframe.addEventListener('load', scalePreview);
+
+      await init();
       loadState();
       scalePreview();
       updatePreview();
