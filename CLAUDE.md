@@ -17,13 +17,13 @@ cargo build
 To run the CLI generator:
 
 ```bash
-just cli 2026 --locale en-GB --theme themes/minimalist.css > out/en.html
+just gen 2026 --locale en-GB --theme themes/minimalist.css > out/en.html
 ```
 
 To run the web server:
 
 ```bash
-just server
+just serve
 ```
 
 When generating the html page, run the exact command above, do not include things like `2>&1 && echo "OK"`.

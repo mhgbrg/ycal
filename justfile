@@ -1,7 +1,7 @@
-cli *ARGS:
+gen *ARGS:
     cargo run --bin cli -- {{ARGS}}
 
-server *ARGS:
+serve *ARGS:
     cargo run --bin server -- {{ARGS}}
 
 dev-cli:
