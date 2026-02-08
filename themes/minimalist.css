@@ -22,7 +22,7 @@ body {
 }
 
 .half:last-child .month > div:last-child {
-  border-bottom: none;
+  border-bottom: 0.5px solid #eee;
 }
 
 .month {
