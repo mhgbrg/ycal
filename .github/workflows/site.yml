@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install just
+        run: apt install just
+
+      - name: Build
+        run: just site
+
+      - uses: actions/upload-pages-artifact
+        with:
+          path: ./site
+
+      - uses: actions/deploy-pages
