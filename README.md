@@ -84,10 +84,6 @@ You can also easily use Claude Code to generate a special days file with public 
 claude -p "Fetch https://www.gov.uk/bank-holidays and extract the England bank holidays for 2026. Output a JSON array where each entry has \"date\" (YYYY-MM-DD), \"name\", and \"is_holiday\": true. Output only the JSON." > bank-holidays.json
 ```
 
-### Custom themes
-
-todo(claude): provide an example of how to use claude code to generate a new theme from a description
-
 ## Development
 
 ```bash

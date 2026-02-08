@@ -46,7 +46,7 @@ body {
   flex-shrink: 0;
 }
 
-.month > div:not(.month-name) {
+.day {
   font-variant-numeric: tabular-nums;
 }
 

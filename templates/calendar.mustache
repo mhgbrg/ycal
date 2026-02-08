@@ -16,6 +16,10 @@
       }
 
       .page {
+        --holiday-flex: 1.30;
+        --day-gap: 0.5ch;
+        --day-number-width: 2ch;
+        --weekday-width: 2ch;
         width: 210mm;
         height: 297mm;
         display: flex;
@@ -37,7 +41,7 @@
         min-height: 0;
       }
 
-      .month > div:not(.month-name) {
+      .day {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -46,8 +50,8 @@
         min-height: 0;
       }
 
-      .month > div.has-holiday {
-        flex: 1.30;
+      .day.has-holiday {
+        flex: var(--holiday-flex);
       }
 
       .day-container {
@@ -59,16 +63,16 @@
         white-space: nowrap;
         flex-shrink: 0;
         display: flex;
-        gap: 0.5ch;
+        gap: var(--day-gap);
       }
 
       .day-number {
-        min-width: 2ch;
+        min-width: var(--day-number-width);
         text-align: right;
       }
 
       .weekday {
-        min-width: 2ch;
+        min-width: var(--weekday-width);
       }
 
       {{{theme_css}}}
@@ -83,7 +87,7 @@
         <div class="month">
           <div class="month-name">{{name}}</div>
           {{#days}}
-          <div class="{{#is_weekend}}is-weekend {{/is_weekend}}{{#is_holiday}}is-holiday {{/is_holiday}}{{#is_week_start}}is-week-start {{/is_week_start}}{{#is_month_start}}is-month-start {{/is_month_start}}{{#is_last_day}}is-last-day {{/is_last_day}}{{#holiday_name}}has-holiday{{/holiday_name}}">
+          <div class="day {{#is_weekend}}is-weekend {{/is_weekend}}{{#is_holiday}}is-holiday {{/is_holiday}}{{#is_week_start}}is-week-start {{/is_week_start}}{{#is_month_start}}is-month-start {{/is_month_start}}{{#is_last_day}}is-last-day {{/is_last_day}}{{#holiday_name}}has-holiday{{/holiday_name}}">
             <div class="day-container">
               <span class="day-label">
                 <span class="day-number">{{day_number}}</span>
