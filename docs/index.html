@@ -38,6 +38,7 @@
         gap: 16px;
         overflow-y: auto;
         flex-shrink: 0;
+        visibility: hidden;
       }
 
       .controls h1 {
@@ -424,6 +425,7 @@
         left: 0;
         transform-origin: top left;
         background: white;
+        visibility: hidden;
       }
 
       @media print {
@@ -801,10 +803,14 @@
       }
 
       window.addEventListener('resize', () => { if (zoomLevel === 1.0) scalePreview(); });
-      iframe.addEventListener('load', scalePreview);
+      iframe.addEventListener('load', () => {
+        iframe.style.visibility = 'visible';
+        scalePreview();
+      });
 
       await init();
       loadState();
+      document.querySelector('.controls').style.visibility = 'visible';
       scalePreview();
       updatePreview();
     </script>
