@@ -2,7 +2,7 @@
 
 Tool for generating printable yearly calendars.
 
-⚠️ The code in this repo was written using Claude Code (with human oversight) ⚠️
+🤖️ The code in this repo was written using Claude Code (with human oversight) 🤖
 
 ## Themes
 
