@@ -399,8 +399,8 @@
     </div>
 
     <div class="zoom-controls">
-      <button onclick="zoomOut()" title="Zoom out">−</button>
-      <span id="zoom-label" onclick="resetZoom()" title="Reset zoom">100%</span>
+      <button id="zoom-out-btn" onclick="zoomOut()" title="Zoom out" disabled>−</button>
+      <span id="zoom-label" onclick="resetZoom()" title="Reset zoom">Auto</span>
       <button onclick="zoomIn()" title="Zoom in">+</button>
     </div>
 
@@ -632,7 +632,7 @@
       }
 
       function zoomOut() {
-        zoomLevel = Math.max(zoomLevel - 0.25, 0.25);
+        zoomLevel = Math.max(zoomLevel - 0.25, 1.0);
         applyZoom();
       }
 
@@ -642,7 +642,8 @@
       }
 
       function applyZoom() {
-        zoomLabel.textContent = Math.round(zoomLevel * 100) + '%';
+        zoomLabel.textContent = zoomLevel === 1.0 ? 'Auto' : Math.round(zoomLevel * 100) + '%';
+        document.getElementById('zoom-out-btn').disabled = zoomLevel === 1.0;
         scalePreview();
       }
 
@@ -662,7 +663,7 @@
         container.style.paddingTop = zoomLevel <= 1.0 ? (pad / 2) + 'px' : '0';
       }
 
-      window.addEventListener('resize', scalePreview);
+      window.addEventListener('resize', () => { if (zoomLevel === 1.0) scalePreview(); });
       iframe.addEventListener('load', scalePreview);
       loadState();
       scalePreview();
