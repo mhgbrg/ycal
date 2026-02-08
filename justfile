@@ -21,8 +21,8 @@ watch:
 serve:
     npx live-server site/
 
-[parallel]
-dev-web: serve watch
+dev-web:
+    just serve & just watch & wait
 
 dev-cli:
     npx live-server out/ &
