@@ -71,6 +71,20 @@
         color: #333;
       }
 
+      .btn-secondary {
+        background: #666;
+        font-size: 13px;
+      }
+
+      .btn-secondary:hover {
+        background: #888;
+      }
+
+      .btn-secondary:disabled {
+        background: #aaa;
+        cursor: default;
+      }
+
       button {
         padding: 8px 16px;
         background: #333;
@@ -355,11 +369,6 @@
         <input type="number" id="day-chars" min="1" value="1">
       </div>
 
-      <div class="field-row">
-        <input type="checkbox" id="holidays">
-        <label for="holidays">Public holidays (experimental)</label>
-      </div>
-
       <div class="field">
         <label>Special days</label>
         <div id="special-days-list"></div>
@@ -370,6 +379,10 @@
             <label class="small-label"><input type="checkbox" id="sd-holiday"> Holiday</label>
             <button class="btn-small" onclick="addSpecialDay()">Add</button>
           </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-secondary" id="load-holidays-btn" onclick="loadPublicHolidays()" style="flex:1">Load public holidays</button>
+          <button class="btn-secondary" id="clear-sd-btn" onclick="clearSpecialDays()" style="flex:1">Clear all</button>
         </div>
       </div>
 
@@ -398,8 +411,6 @@
       const localeCustom = document.getElementById('locale-custom');
       const themeSelect = document.getElementById('theme');
       const dayCharsInput = document.getElementById('day-chars');
-      const holidaysCheckbox = document.getElementById('holidays');
-
       function getLocale() {
         return localeCustom.style.display === 'none' ? localeSelect.value : localeCustom.value;
       }
@@ -427,8 +438,41 @@
         updatePreview();
       }
 
+      async function loadPublicHolidays() {
+        const btn = document.getElementById('load-holidays-btn');
+        const locale = getLocale();
+        const year = yearInput.value;
+        btn.disabled = true;
+        btn.textContent = 'Loading...';
+        try {
+          const res = await fetch('/holidays?year=' + encodeURIComponent(year) + '&locale=' + encodeURIComponent(locale));
+          if (!res.ok) throw new Error(await res.text());
+          const holidays = await res.json();
+          const existing = new Set(specialDays.map(sd => sd.date));
+          let added = 0;
+          for (const h of holidays) {
+            if (!existing.has(h.date)) {
+              specialDays.push(h);
+              added++;
+            }
+          }
+          renderSpecialDays();
+          updatePreview();
+          btn.textContent = added > 0 ? 'Loaded ' + added + ' holidays' : 'No new holidays';
+        } catch (e) {
+          btn.textContent = 'Failed to load';
+        }
+        setTimeout(() => { btn.textContent = 'Load public holidays'; btn.disabled = false; }, 2000);
+      }
+
       function removeSpecialDay(index) {
         specialDays.splice(index, 1);
+        renderSpecialDays();
+        updatePreview();
+      }
+
+      function clearSpecialDays() {
+        specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
       }
@@ -480,9 +524,6 @@
           theme: themeSelect.value,
           day_name_characters: dayCharsInput.value,
         });
-        if (holidaysCheckbox.checked) {
-          params.set('public_holidays', 'true');
-        }
         if (specialDays.length > 0) {
           params.set('special_days', JSON.stringify(specialDays));
         }
@@ -496,7 +537,6 @@
           localeCustom: localeCustom.value,
           theme: themeSelect.value,
           dayChars: parseInt(dayCharsInput.value),
-          holidays: holidaysCheckbox.checked,
           specialDays: specialDays,
         };
         try { localStorage.setItem('ycal-state', JSON.stringify(state)); } catch(e) {}
@@ -523,7 +563,6 @@
         }
         if (state.theme) themeSelect.value = state.theme;
         if (state.dayChars) dayCharsInput.value = state.dayChars;
-        holidaysCheckbox.checked = !!state.holidays;
         if (Array.isArray(state.specialDays)) {
           specialDays.length = 0;
           state.specialDays.forEach(sd => specialDays.push(sd));
@@ -540,7 +579,6 @@
         localeCustom.value = '';
         themeSelect.value = 'minimalist';
         dayCharsInput.value = 1;
-        holidaysCheckbox.checked = false;
         specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
@@ -580,7 +618,6 @@
         clearTimeout(dayCharsTimeout);
         dayCharsTimeout = setTimeout(updatePreview, 400);
       });
-      holidaysCheckbox.addEventListener('change', updatePreview);
 
       function printCalendar() {
         iframe.contentWindow.print();

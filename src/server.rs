@@ -1,11 +1,11 @@
 use axum::extract::Query;
 use axum::http::header;
-use axum::response::{Html, IntoResponse};
+use axum::response::{Html, IntoResponse, Json};
 use axum::routing::get;
 use axum::Router;
-use chrono::Datelike;
+use chrono::{Datelike, NaiveDate};
 use clap::Parser;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use ycal::{CalendarParams, SpecialDay};
 
 #[derive(Parser)]
@@ -54,9 +54,27 @@ struct CalendarQuery {
     #[serde(default = "default_day_name_characters")]
     day_name_characters: usize,
     #[serde(default)]
-    public_holidays: bool,
-    #[serde(default)]
     special_days: String,
+}
+
+#[derive(Deserialize)]
+struct HolidaysQuery {
+    year: i32,
+    locale: String,
+}
+
+#[derive(Deserialize)]
+struct NagerHoliday {
+    date: NaiveDate,
+    #[serde(rename = "localName")]
+    local_name: String,
+}
+
+#[derive(Serialize)]
+struct HolidayEntry {
+    date: NaiveDate,
+    name: String,
+    is_holiday: bool,
 }
 
 fn default_year() -> i32 {
@@ -78,7 +96,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(shell_handler))
-        .route("/calendar", get(calendar_handler));
+        .route("/calendar", get(calendar_handler))
+        .route("/holidays", get(holidays_handler));
 
     let addr = format!("0.0.0.0:{}", cli.port);
     eprintln!("Listening on http://localhost:{}", cli.port);
@@ -115,11 +134,61 @@ async fn calendar_handler(Query(q): Query<CalendarQuery>) -> impl IntoResponse {
         day_name_characters: q.day_name_characters,
         theme_css,
         special_days,
-        public_holidays: q.public_holidays,
     };
 
     match ycal::generate_calendar(params) {
         Ok(html) => ([(header::CONTENT_TYPE, "text/html; charset=utf-8")], html).into_response(),
         Err(e) => (axum::http::StatusCode::BAD_REQUEST, format!("Error: {}", e)).into_response(),
     }
+}
+
+async fn holidays_handler(Query(q): Query<HolidaysQuery>) -> impl IntoResponse {
+    let country_code = match q.locale.split('-').nth(1) {
+        Some(cc) => cc.to_string(),
+        None => {
+            return (
+                axum::http::StatusCode::BAD_REQUEST,
+                "Error: locale must contain a country code (e.g. en-GB)".to_string(),
+            )
+                .into_response();
+        }
+    };
+
+    let url = format!(
+        "https://date.nager.at/api/v3/PublicHolidays/{}/{}",
+        q.year, country_code
+    );
+
+    let response = match ureq::get(&url).call() {
+        Ok(r) => r,
+        Err(e) => {
+            return (
+                axum::http::StatusCode::BAD_GATEWAY,
+                format!("Error: failed to fetch holidays: {}", e),
+            )
+                .into_response();
+        }
+    };
+
+    let nager_holidays: Vec<NagerHoliday> = match response.into_body().read_json() {
+        Ok(h) => h,
+        Err(e) => {
+            return (
+                axum::http::StatusCode::BAD_GATEWAY,
+                format!("Error: failed to parse holidays: {}", e),
+            )
+                .into_response();
+        }
+    };
+
+    let entries: Vec<HolidayEntry> = nager_holidays
+        .into_iter()
+        .map(|h| HolidayEntry {
+            date: h.date,
+            name: h.local_name,
+            is_holiday: true,
+        })
+        .collect();
+
+    Json(entries).into_response()
 }

@@ -21,9 +21,6 @@ struct Cli {
     /// Path to CSS theme file
     #[arg(long)]
     theme: PathBuf,
-    /// Fetch public holidays from the Nager.Date API (experimental)
-    #[arg(long)]
-    public_holidays: bool,
 }
 
 fn main() {
@@ -46,7 +43,6 @@ fn generate(cli: Cli) {
         day_name_characters: cli.day_name_characters,
         theme_css,
         special_days: user_special_days,
-        public_holidays: cli.public_holidays,
     };
 
     match ycal::generate_calendar(params) {
