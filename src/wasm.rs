@@ -5,17 +5,40 @@ use wasm_bindgen::prelude::*;
 #[derive(Deserialize)]
 struct Params {
     year: i32,
+    #[serde(default = "default_locale")]
     locale: String,
     #[serde(default = "default_day_name_characters")]
     day_name_characters: usize,
+    #[serde(default = "default_day_font_size")]
+    day_font_size: f32,
+    #[serde(default = "default_month_font_size")]
+    month_font_size: f32,
+    #[serde(default = "default_notes_space")]
+    notes_space: f32,
     #[serde(default = "default_theme")]
     theme: String,
     #[serde(default)]
     special_days: Vec<SpecialDay>,
 }
 
+fn default_locale() -> String {
+    "en-GB".to_string()
+}
+
 fn default_day_name_characters() -> usize {
     1
+}
+
+fn default_day_font_size() -> f32 {
+    7.0
+}
+
+fn default_month_font_size() -> f32 {
+    7.0
+}
+
+fn default_notes_space() -> f32 {
+    24.0
 }
 
 fn default_theme() -> String {
@@ -37,6 +60,9 @@ pub fn generate_calendar(params_json: &str) -> Result<String, JsValue> {
         year: params.year,
         locale: params.locale,
         day_name_characters: params.day_name_characters,
+        day_font_size_pt: params.day_font_size,
+        month_font_size_pt: params.month_font_size,
+        notes_space_mm: params.notes_space,
         theme_css: theme_css.to_string(),
         special_days: params.special_days,
     };

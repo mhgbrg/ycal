@@ -88,6 +88,28 @@
         color: white;
       }
 
+      .field-group {
+        border: 1px solid #3a3a55;
+        border-radius: 8px;
+        padding: 0 12px;
+      }
+
+      .field-group summary {
+        font-size: 13px;
+        font-weight: 500;
+        color: #a0a0b8;
+        cursor: pointer;
+        padding: 10px 0;
+      }
+
+      .field-group summary:hover {
+        color: white;
+      }
+
+      .field-group .field {
+        margin-bottom: 12px;
+      }
+
       .field-row {
         display: flex;
         align-items: center;
@@ -499,11 +521,6 @@
       </div>
 
       <div class="field">
-        <label for="day-chars">Number of characters for day names</label>
-        <input type="number" id="day-chars" min="1" value="1">
-      </div>
-
-      <div class="field">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <label>Special days</label>
           <div style="display:flex;gap:8px;align-items:center">
@@ -522,6 +539,26 @@
           </div>
         </div>
       </div>
+
+      <details class="field-group">
+        <summary>Advanced</summary>
+        <div class="field">
+          <label for="day-chars">Number of characters for day names</label>
+          <input type="number" id="day-chars" min="1" value="1">
+        </div>
+        <div class="field">
+          <label for="day-font-size">Day font size (pt)</label>
+          <input type="number" id="day-font-size" step="0.5" value="7">
+        </div>
+        <div class="field">
+          <label for="month-font-size">Month font size (pt)</label>
+          <input type="number" id="month-font-size" step="0.5" value="7">
+        </div>
+        <div class="field">
+          <label for="notes-space">Space for notes (mm)</label>
+          <input type="number" id="notes-space" step="1" value="24">
+        </div>
+      </details>
 
       <div style="margin-top:auto;display:flex;gap:8px">
         <button class="btn-secondary" onclick="resetState()" style="flex:1">&#x21BA; Reset</button>
@@ -550,6 +587,9 @@
       const localeCustom = document.getElementById('locale-custom');
       const themeSelect = document.getElementById('theme');
       const dayCharsInput = document.getElementById('day-chars');
+      const dayFontSizeInput = document.getElementById('day-font-size');
+      const monthFontSizeInput = document.getElementById('month-font-size');
+      const notesSpaceInput = document.getElementById('notes-space');
       function getLocale() {
         return localeCustom.style.display === 'none' ? localeSelect.value : localeCustom.value;
       }
@@ -664,6 +704,9 @@
           localeCustom: localeCustom.value,
           theme: themeSelect.value,
           dayChars: parseInt(dayCharsInput.value),
+          dayFontSize: parseFloat(dayFontSizeInput.value),
+          monthFontSize: parseFloat(monthFontSizeInput.value),
+          notesSpace: parseFloat(notesSpaceInput.value),
           specialDays: specialDays,
         };
         try { localStorage.setItem('ycal-state', JSON.stringify(state)); } catch(e) {}
@@ -690,6 +733,9 @@
         }
         if (state.theme) themeSelect.value = state.theme;
         if (state.dayChars) dayCharsInput.value = state.dayChars;
+        if (state.dayFontSize) dayFontSizeInput.value = state.dayFontSize;
+        if (state.monthFontSize) monthFontSizeInput.value = state.monthFontSize;
+        if (state.notesSpace !== undefined) notesSpaceInput.value = state.notesSpace;
         if (Array.isArray(state.specialDays)) {
           specialDays.length = 0;
           state.specialDays.forEach(sd => specialDays.push(sd));
@@ -706,6 +752,9 @@
         localeCustom.value = '';
         themeSelect.value = 'minimalist';
         dayCharsInput.value = 1;
+        dayFontSizeInput.value = 7;
+        monthFontSizeInput.value = 7;
+        notesSpaceInput.value = 24;
         specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
@@ -717,6 +766,9 @@
           locale: getLocale(),
           theme: themeSelect.value,
           day_name_characters: parseInt(dayCharsInput.value),
+          day_font_size: parseFloat(dayFontSizeInput.value),
+          month_font_size: parseFloat(monthFontSizeInput.value),
+          notes_space: parseFloat(notesSpaceInput.value),
           special_days: specialDays,
         });
         try {
@@ -756,6 +808,21 @@
       dayCharsInput.addEventListener('input', () => {
         clearTimeout(dayCharsTimeout);
         dayCharsTimeout = setTimeout(updatePreview, 400);
+      });
+      let dayFontSizeTimeout;
+      dayFontSizeInput.addEventListener('input', () => {
+        clearTimeout(dayFontSizeTimeout);
+        dayFontSizeTimeout = setTimeout(updatePreview, 400);
+      });
+      let monthFontSizeTimeout;
+      monthFontSizeInput.addEventListener('input', () => {
+        clearTimeout(monthFontSizeTimeout);
+        monthFontSizeTimeout = setTimeout(updatePreview, 400);
+      });
+      let notesSpaceTimeout;
+      notesSpaceInput.addEventListener('input', () => {
+        clearTimeout(notesSpaceTimeout);
+        notesSpaceTimeout = setTimeout(updatePreview, 400);
       });
 
       window.printCalendar = function() {

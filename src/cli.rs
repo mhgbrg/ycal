@@ -18,6 +18,15 @@ struct Cli {
     /// Path to JSON special days file
     #[arg(long)]
     special_days: Option<PathBuf>,
+    /// Day font size in pt
+    #[arg(long, default_value = "7")]
+    day_font_size: f32,
+    /// Month name font size in pt
+    #[arg(long, default_value = "7")]
+    month_font_size: f32,
+    /// Space for notes below month names in mm
+    #[arg(long, default_value = "24")]
+    notes_space: f32,
     /// Path to CSS theme file
     #[arg(long)]
     theme: PathBuf,
@@ -41,6 +50,9 @@ fn generate(cli: Cli) {
         year: cli.year,
         locale: cli.locale,
         day_name_characters: cli.day_name_characters,
+        day_font_size_pt: cli.day_font_size,
+        month_font_size_pt: cli.month_font_size,
+        notes_space_mm: cli.notes_space,
         theme_css,
         special_days: user_special_days,
     };

@@ -52,6 +52,8 @@ Special days are provided via an optional `--special-days` JSON file with `[{ "d
 
 Output is a self-contained HTML file with embedded CSS, designed to print on one A4 portrait page.
 
+The files in the `docs/` folder are automatically built by the user. You should never edit them directly.
+
 ## Style
 
 - Rust code is formatted with `cargo fmt`.

@@ -1,6 +1,5 @@
 body {
   font-family: Inter, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-size: 8pt;
   font-weight: 400;
   line-height: 1.15;
   color: #666;
@@ -35,13 +34,11 @@ body {
 
 .month-name {
   font-weight: 600;
-  font-size: 7pt;
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.3em;
   color: #333;
   padding: 1mm 0;
-  margin-bottom: 24mm;
   border-bottom: 0.5px solid #eee;
   flex-shrink: 0;
 }

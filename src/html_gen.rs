@@ -11,6 +11,9 @@ pub struct CalendarParams {
     pub year: i32,
     pub locale: String,
     pub day_name_characters: usize,
+    pub day_font_size_pt: f32,
+    pub month_font_size_pt: f32,
+    pub notes_space_mm: f32,
     pub theme_css: String,
     pub special_days: Vec<SpecialDay>,
 }
@@ -25,6 +28,9 @@ pub struct SpecialDay {
 #[derive(Content)]
 struct TemplateData {
     year: i32,
+    day_font_size_pt: f32,
+    month_font_size_pt: f32,
+    notes_space_mm: f32,
     halves: Vec<HalfData>,
     theme_css: String,
 }
@@ -105,6 +111,9 @@ pub fn generate_calendar(params: CalendarParams) -> Result<String, CalendarError
         &months,
         locale,
         params.day_name_characters,
+        params.day_font_size_pt,
+        params.month_font_size_pt,
+        params.notes_space_mm,
         &params.special_days,
         params.theme_css,
     );
@@ -116,6 +125,9 @@ fn build_template_data(
     months: &[Vec<NaiveDate>; 12],
     locale: Locale,
     day_name_chars: usize,
+    day_font_size_pt: f32,
+    month_font_size_pt: f32,
+    notes_space_mm: f32,
     special_days: &[SpecialDay],
     theme_css: String,
 ) -> TemplateData {
@@ -186,6 +198,9 @@ fn build_template_data(
 
     TemplateData {
         year,
+        day_font_size_pt,
+        month_font_size_pt,
+        notes_space_mm,
         halves,
         theme_css,
     }
