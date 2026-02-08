@@ -19,8 +19,8 @@ jobs:
       - name: Build
         run: just site
 
-      - uses: actions/upload-pages-artifact
+      - uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: ./site
 
-      - uses: actions/deploy-pages
+      - uses: actions/deploy-pages@v4.0.5
