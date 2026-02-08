@@ -2,6 +2,7 @@
 target/
 out/
 pkg/
+site/
 todo.md
 *.swp
 node_modules/

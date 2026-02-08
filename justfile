@@ -7,19 +7,19 @@ holidays *ARGS:
 wasm:
     wasm-pack build --target web
 
-page: wasm
-    mkdir -p docs
-    cp static/* docs/
-    cp pkg/*.js docs/
-    cp pkg/*.d.ts docs/
-    cp pkg/*.wasm docs/
-    cp pkg/*.wasm.d.ts docs/
+site: wasm
+    mkdir -p site
+    cp static/* site/
+    cp pkg/*.js site/
+    cp pkg/*.d.ts site/
+    cp pkg/*.wasm site/
+    cp pkg/*.wasm.d.ts site/
 
 watch:
-    watchexec --print-events -w src -w static -w templates -w themes --restart -- just page
+    watchexec --print-events -w src -w static -w templates -w themes --restart -- just site
 
 serve:
-    npx live-server docs/
+    npx live-server site/
 
 [parallel]
 dev-web: serve watch
