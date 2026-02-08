@@ -507,9 +507,9 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
           <label>Special days</label>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="link-btn" id="load-holidays-btn" onclick="loadPublicHolidays()">Load</button>
+            <button class="link-btn" id="load-holidays-btn" onclick="loadPublicHolidays()">Generate</button>
             <span style="color:#555570;font-size:12px">&middot;</span>
-            <button class="link-btn" id="clear-sd-btn" onclick="clearSpecialDays()">Clear all</button>
+            <button class="link-btn" id="clear-sd-btn" onclick="clearSpecialDays()">Clear</button>
           </div>
         </div>
         <div id="special-days-list"></div>
@@ -586,7 +586,7 @@
         const countryCode = locale.split('-')[1];
         if (!countryCode) return;
         btn.disabled = true;
-        btn.textContent = 'Loading\u2026';
+        btn.textContent = '\u2026';
         try {
           const res = await fetch('https://date.nager.at/api/v3/PublicHolidays/' + encodeURIComponent(year) + '/' + encodeURIComponent(countryCode));
           if (!res.ok) throw new Error(await res.text());
@@ -601,7 +601,7 @@
           updatePreview();
         } catch (e) {
         }
-        btn.textContent = 'Load';
+        btn.textContent = 'Generate';
         btn.disabled = false;
       };
 
