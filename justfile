@@ -6,10 +6,10 @@ holidays *ARGS:
 
 build:
     wasm-pack build --target web
-    cp templates/index.html pkg/index.html
+    cp static/* pkg/
 
 watch:
-    watchexec --print-events -w src -w templates -w themes --restart -- just build
+    watchexec --print-events -w src -w static -w templates -w themes --restart -- just build
 
 serve:
     npx live-server pkg/
