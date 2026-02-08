@@ -1,9 +1,9 @@
 use axum::extract::Query;
-use axum::http::header;
+use axum::http::{header, StatusCode};
 use axum::response::{Html, IntoResponse, Json};
 use axum::routing::get;
 use axum::Router;
-use chrono::{Datelike, NaiveDate};
+use chrono::{Datelike, Local, NaiveDate};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use ycal::{CalendarParams, SpecialDay};
@@ -78,7 +78,7 @@ struct HolidayEntry {
 }
 
 fn default_year() -> i32 {
-    chrono::Local::now().year()
+    Local::now().year()
 }
 fn default_locale() -> String {
     "en-GB".to_string()
@@ -114,7 +114,7 @@ async fn calendar_handler(Query(q): Query<CalendarQuery>) -> impl IntoResponse {
         Some(t) => t,
         None => {
             return (
-                axum::http::StatusCode::BAD_REQUEST,
+                StatusCode::BAD_REQUEST,
                 format!("Error: unknown theme '{}'", q.theme),
             )
                 .into_response();
@@ -138,7 +138,7 @@ async fn calendar_handler(Query(q): Query<CalendarQuery>) -> impl IntoResponse {
 
     match ycal::generate_calendar(params) {
         Ok(html) => ([(header::CONTENT_TYPE, "text/html; charset=utf-8")], html).into_response(),
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, format!("Error: {}", e)).into_response(),
+        Err(e) => (StatusCode::BAD_REQUEST, format!("Error: {}", e)).into_response(),
     }
 }
 
@@ -147,7 +147,7 @@ async fn holidays_handler(Query(q): Query<HolidaysQuery>) -> impl IntoResponse {
         Some(cc) => cc.to_string(),
         None => {
             return (
-                axum::http::StatusCode::BAD_REQUEST,
+                StatusCode::BAD_REQUEST,
                 "Error: locale must contain a country code (e.g. en-GB)".to_string(),
             )
                 .into_response();
@@ -163,7 +163,7 @@ async fn holidays_handler(Query(q): Query<HolidaysQuery>) -> impl IntoResponse {
         Ok(r) => r,
         Err(e) => {
             return (
-                axum::http::StatusCode::BAD_GATEWAY,
+                StatusCode::BAD_GATEWAY,
                 format!("Error: failed to fetch holidays: {}", e),
             )
                 .into_response();
@@ -174,7 +174,7 @@ async fn holidays_handler(Query(q): Query<HolidaysQuery>) -> impl IntoResponse {
         Ok(h) => h,
         Err(e) => {
             return (
-                axum::http::StatusCode::BAD_GATEWAY,
+                StatusCode::BAD_GATEWAY,
                 format!("Error: failed to parse holidays: {}", e),
             )
                 .into_response();
