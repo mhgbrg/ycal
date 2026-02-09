@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>ycal</title>
     <style>
       * {
@@ -450,13 +451,155 @@
         visibility: hidden;
       }
 
+      .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+      }
+
+      .overlay.visible {
+        display: block;
+      }
+
+      .fab-group {
+        display: none;
+      }
+
+      .panel-close {
+        display: none;
+      }
+
+      @media (max-width: 767px) {
+        body {
+          display: block;
+          overflow: visible;
+        }
+
+        .controls {
+          position: fixed;
+          left: 0;
+          top: 0;
+          height: 100vh;
+          height: 100dvh;
+          width: 85vw;
+          max-width: 320px;
+          transform: translateX(-100%);
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: rgba(26, 26, 46, 0.92);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          z-index: 100;
+          box-shadow: none;
+        }
+
+        .controls.open {
+          transform: translateX(0);
+          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-close {
+          display: block;
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: none;
+          border: none;
+          color: #a0a0b8;
+          font-size: 22px;
+          padding: 4px 8px;
+          cursor: pointer;
+          line-height: 1;
+        }
+
+        .panel-close:hover {
+          color: white;
+          background: none;
+          transform: none;
+          box-shadow: none;
+        }
+
+        .preview {
+          width: 100vw;
+          height: 100vh;
+          height: 100dvh;
+          overflow: auto;
+          position: relative;
+          touch-action: pan-x pan-y;
+        }
+
+        .iframe-wrapper {
+          margin: 8px auto;
+        }
+
+        .iframe-wrapper iframe {
+          pointer-events: none;
+        }
+
+        .zoom-controls {
+          display: none !important;
+        }
+
+        .fab-group {
+          display: flex;
+          position: fixed;
+          bottom: 20px;
+          right: 16px;
+          gap: 10px;
+          z-index: 10;
+        }
+
+        .fab-group button {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          padding: 0;
+          background: #1a1a2e;
+          border: 1px solid #3a3a55;
+          color: white;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .fab-group button:hover {
+          background: #252540;
+          transform: none;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .fab-group button:active {
+          background: #252540;
+        }
+
+        .field input,
+        .field select {
+          padding: 12px 14px;
+          font-size: 16px;
+        }
+
+        .field-row input[type="checkbox"] {
+          width: 20px;
+          height: 20px;
+        }
+
+      }
+
       @media print {
+        .overlay,
+        .fab-group {
+          display: none !important;
+        }
+
         @page {
-          margin: 0;
+          margin: 0 !important;
         }
 
         body {
-          margin: 0;
+          margin: 0 !important;
         }
 
         .controls {
@@ -470,18 +613,22 @@
         .iframe-wrapper {
           width: 100vw !important;
           height: 100vh !important;
+          box-shadow: none;
+          margin: 0;
         }
 
         .iframe-wrapper iframe {
-          width: 100vw;
-          height: 100vh;
+          width: 100vw !important;
+          height: 100vh !important;
           transform: none !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="controls">
+    <div class="overlay" id="overlay"></div>
+    <div class="controls" id="controls-panel">
+      <button class="panel-close" id="panel-close" title="Close">&times;</button>
       <h1>ycal</h1>
 
       <div class="field">
@@ -578,6 +725,10 @@
       <button onclick="zoomIn()" title="Zoom in">+</button>
     </div>
 
+    <div class="fab-group">
+      <button onclick="openPanel()" title="Settings">&#9881;</button>
+    </div>
+
     <script type="module">
       import init, { generate_calendar } from './ycal.js';
 
@@ -590,6 +741,95 @@
       const dayFontSizeInput = document.getElementById('day-font-size');
       const monthFontSizeInput = document.getElementById('month-font-size');
       const notesSpaceInput = document.getElementById('notes-space');
+
+      // Mobile panel
+      const controlsPanel = document.getElementById('controls-panel');
+      const overlay = document.getElementById('overlay');
+      const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
+
+      window.openPanel = function() {
+        controlsPanel.classList.add('open');
+        overlay.classList.add('visible');
+      };
+
+      window.closePanel = function() {
+        controlsPanel.classList.remove('open');
+        overlay.classList.remove('visible');
+      };
+
+      overlay.addEventListener('click', closePanel);
+      document.getElementById('panel-close').addEventListener('click', closePanel);
+
+      // Swipe left to close panel
+      let touchStartX = 0;
+      let touchStartY = 0;
+      controlsPanel.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+      controlsPanel.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (dx < -60 && Math.abs(dy) < Math.abs(dx)) closePanel();
+      }, { passive: true });
+
+      // Mobile pinch-to-zoom on preview (1-finger pan is native scroll)
+      let pinchStartDist = 0;
+      let pinchStartScale = 1;
+      let mobileZoom = 1;
+      const previewEl = document.querySelector('.preview');
+      const wrapperEl = document.getElementById('iframe-wrapper');
+
+      function getTouchDist(t1, t2) {
+        const dx = t1.clientX - t2.clientX;
+        const dy = t1.clientY - t2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      previewEl.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          pinchStartDist = getTouchDist(e.touches[0], e.touches[1]);
+          pinchStartScale = mobileZoom;
+        }
+      }, { passive: true });
+
+      previewEl.addEventListener('touchmove', (e) => {
+        if (e.touches.length !== 2) return;
+        e.preventDefault();
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const scrollMidX = midX + previewEl.scrollLeft - previewEl.getBoundingClientRect().left;
+        const scrollMidY = midY + previewEl.scrollTop - previewEl.getBoundingClientRect().top;
+        const oldZoom = mobileZoom;
+        const dist = getTouchDist(e.touches[0], e.touches[1]);
+        mobileZoom = Math.max(1, Math.min(5, pinchStartScale * (dist / pinchStartDist)));
+        scaleMobilePreview();
+        const ratio = mobileZoom / oldZoom;
+        previewEl.scrollLeft = scrollMidX * ratio - (midX - previewEl.getBoundingClientRect().left);
+        previewEl.scrollTop = scrollMidY * ratio - (midY - previewEl.getBoundingClientRect().top);
+      }, { passive: false });
+
+      previewEl.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0 && mobileZoom <= 1.05) {
+          mobileZoom = 1;
+          scaleMobilePreview();
+          previewEl.scrollLeft = 0;
+          previewEl.scrollTop = 0;
+        }
+      }, { passive: true });
+
+      function scaleMobilePreview() {
+        const pad = 16;
+        const iframeW = 793.7;
+        const iframeH = 1122.5;
+        const availW = previewEl.clientWidth - pad;
+        const fitScale = Math.min(availW / iframeW, 1);
+        const scale = fitScale * mobileZoom;
+        iframe.style.transform = 'scale(' + scale + ')';
+        wrapperEl.style.width = (iframeW * scale) + 'px';
+        wrapperEl.style.height = (iframeH * scale) + 'px';
+      }
+
       function getLocale() {
         return localeCustom.style.display === 'none' ? localeSelect.value : localeCustom.value;
       }
@@ -856,11 +1096,17 @@
       function scalePreview() {
         const container = document.querySelector('.preview');
         const wrapper = document.getElementById('iframe-wrapper');
+        const iframeW = 793.7;  // 210mm in px at 96dpi
+        const iframeH = 1122.5; // 297mm in px at 96dpi
+
+        if (isMobile()) {
+          scaleMobilePreview();
+          return;
+        }
+
         const pad = 48;
         const availW = container.clientWidth - pad;
         const availH = container.clientHeight - pad;
-        const iframeW = 793.7;  // 210mm in px at 96dpi
-        const iframeH = 1122.5; // 297mm in px at 96dpi
         const fitScale = Math.min(availW / iframeW, availH / iframeH, 1);
         const scale = fitScale * zoomLevel;
         iframe.style.transform = 'scale(' + scale + ')';
@@ -869,7 +1115,14 @@
         container.style.paddingTop = zoomLevel <= 1.0 ? (pad / 2) + 'px' : '0';
       }
 
-      window.addEventListener('resize', () => { if (zoomLevel === 1.0) scalePreview(); });
+      window.addEventListener('resize', () => {
+        if (isMobile()) {
+          mobileZoom = 1;
+          previewEl.scrollLeft = 0;
+          previewEl.scrollTop = 0;
+        }
+        if (isMobile() || zoomLevel === 1.0) scalePreview();
+      });
       iframe.addEventListener('load', () => {
         iframe.style.visibility = 'visible';
         scalePreview();
