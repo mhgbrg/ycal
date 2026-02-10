@@ -57,6 +57,9 @@ body {
 
 .is-weekend, .is-holiday {
   color: #e63946;
+  background: #f0f0f0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .month > .month-name + div {
@@ -65,10 +68,6 @@ body {
 
 .is-week-start:not(.is-month-start) {
   border-top: 1px solid #ccc;
-}
-
-.is-last-day {
-  font-weight: 800;
 }
 
 .week-number {

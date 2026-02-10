@@ -23,6 +23,10 @@ struct Params {
     theme: String,
     #[serde(default)]
     special_days: Vec<SpecialDay>,
+    #[serde(default = "default_highlight_holidays")]
+    highlight_holidays: bool,
+    #[serde(default)]
+    saturday_is_weekend: bool,
 }
 
 fn default_locale() -> String {
@@ -53,6 +57,10 @@ fn default_notes_space() -> f32 {
     40.0
 }
 
+fn default_highlight_holidays() -> bool {
+    true
+}
+
 fn default_theme() -> String {
     "minimalist".to_string()
 }
@@ -79,6 +87,8 @@ pub fn generate_calendar(params_json: &str) -> Result<String, JsValue> {
         notes_space_mm: params.notes_space,
         theme_css: theme_css.to_string(),
         special_days: params.special_days,
+        highlight_holidays: params.highlight_holidays,
+        saturday_is_weekend: params.saturday_is_weekend,
     };
 
     crate::generate_calendar(calendar_params).map_err(|e| JsValue::from_str(&e.to_string()))

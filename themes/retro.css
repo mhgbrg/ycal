@@ -66,10 +66,6 @@ body {
   border-top: none;
 }
 
-.is-last-day {
-  font-weight: 700;
-}
-
 .week-number {
   line-height: 1;
   color: #000;

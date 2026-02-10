@@ -18,6 +18,8 @@ pub struct CalendarParams {
     pub notes_space_mm: f32,
     pub theme_css: String,
     pub special_days: Vec<SpecialDay>,
+    pub highlight_holidays: bool,
+    pub saturday_is_weekend: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -38,6 +40,7 @@ struct TemplateData {
     first_half: HalfData,
     second_half: HalfData,
     theme_css: String,
+    highlight_holidays: bool,
 }
 
 #[derive(Content)]
@@ -59,7 +62,6 @@ struct DayData {
     is_week_start: bool,
     is_weekend: bool,
     is_month_start: bool,
-    is_last_day: bool,
     is_holiday: bool,
     holiday_name: String,
 }
@@ -123,6 +125,8 @@ pub fn generate_calendar(params: CalendarParams) -> Result<String, CalendarError
         params.notes_space_mm,
         &params.special_days,
         params.theme_css,
+        params.highlight_holidays,
+        params.saturday_is_weekend,
     );
     Ok(template.render(&template_data))
 }
@@ -139,6 +143,8 @@ fn build_template_data(
     notes_space_mm: f32,
     special_days: &[SpecialDay],
     theme_css: String,
+    highlight_holidays: bool,
+    saturday_is_weekend: bool,
 ) -> TemplateData {
     let mut day_map: HashMap<NaiveDate, Vec<&SpecialDay>> = HashMap::new();
     for d in special_days {
@@ -148,13 +154,11 @@ fn build_template_data(
     let date_to_day_data = |date: &NaiveDate| -> DayData {
         let day = date.day();
         let wd = date.weekday();
-        let is_weekend = wd == Weekday::Sat || wd == Weekday::Sun;
+        let is_weekend = wd == Weekday::Sun || (saturday_is_weekend && wd == Weekday::Sat);
         let entries = day_map.get(date);
         let is_holiday = entries
             .map(|e| e.iter().any(|d| d.is_holiday))
             .unwrap_or(false);
-        let is_last_day = date.month() == 12 && day == 31;
-
         let display_name: String = entries
             .into_iter()
             .flatten()
@@ -172,7 +176,6 @@ fn build_template_data(
             is_week_start: wd == Weekday::Mon,
             is_weekend,
             is_month_start: day == 1,
-            is_last_day,
             is_holiday,
             holiday_name: display_name,
         }
@@ -213,6 +216,7 @@ fn build_template_data(
         first_half,
         second_half,
         theme_css,
+        highlight_holidays,
     }
 }
 

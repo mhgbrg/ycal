@@ -33,6 +33,12 @@ struct Cli {
     /// Space for notes below month names in mm
     #[arg(long, default_value = "40")]
     notes_space: f32,
+    /// Highlight weekends and holidays with a background color
+    #[arg(long, default_value = "true")]
+    highlight_holidays: bool,
+    /// Treat Saturdays as weekend days
+    #[arg(long, default_value = "false")]
+    saturday_is_weekend: bool,
     /// Path to CSS theme file
     #[arg(long)]
     theme: PathBuf,
@@ -63,6 +69,8 @@ fn generate(cli: Cli) {
         notes_space_mm: cli.notes_space,
         theme_css,
         special_days: user_special_days,
+        highlight_holidays: cli.highlight_holidays,
+        saturday_is_weekend: cli.saturday_is_weekend,
     };
 
     match ycal::generate_calendar(params) {
