@@ -30,11 +30,11 @@ fn default_day_name_characters() -> usize {
 }
 
 fn default_day_font_size() -> f32 {
-    7.0
+    8.0
 }
 
 fn default_month_font_size() -> f32 {
-    7.0
+    8.0
 }
 
 fn default_notes_space() -> f32 {

@@ -1,7 +1,7 @@
 body {
   font-family: "Special Elite", "Courier New", Courier, monospace;
   line-height: 1.15;
-  color: #333;
+  color: #000;
 }
 
 .header {
@@ -36,7 +36,7 @@ body {
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #333;
+  color: #000;
   padding: 1.6mm 0 1mm 0;
   border-bottom: 1px solid #999;
   flex-shrink: 0;
@@ -70,8 +70,14 @@ body {
   font-weight: 700;
 }
 
-.holiday-name, .week-number {
-  font-size: 3pt;
+.week-number {
+  font-size: 3.5pt;
+  line-height: 1;
+  color: #777;
+}
+
+.holiday-name {
+  font-size: 3.5pt;
   line-height: 1;
   color: #777;
   white-space: nowrap;

@@ -19,10 +19,10 @@ struct Cli {
     #[arg(long)]
     special_days: Option<PathBuf>,
     /// Day font size in pt
-    #[arg(long, default_value = "7")]
+    #[arg(long, default_value = "8")]
     day_font_size: f32,
     /// Month name font size in pt
-    #[arg(long, default_value = "7")]
+    #[arg(long, default_value = "8")]
     month_font_size: f32,
     /// Space for notes below month names in mm
     #[arg(long, default_value = "24")]

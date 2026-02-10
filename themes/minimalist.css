@@ -2,7 +2,7 @@ body {
   font-family: Inter, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   font-weight: 400;
   line-height: 1.15;
-  color: #666;
+  color: #000;
 }
 
 .header {
@@ -10,7 +10,7 @@ body {
   font-size: 14pt;
   font-weight: 400;
   letter-spacing: 0.3em;
-  color: #999;
+  color: #000;
   display: flex;
   align-items: center;
   padding-left: 1mm;
@@ -21,7 +21,7 @@ body {
 }
 
 .half:last-child .month > div:last-child {
-  border-bottom: 0.5px solid #eee;
+  border-bottom: 0.5px solid #ccc;
 }
 
 .month {
@@ -29,7 +29,7 @@ body {
 }
 
 .month:not(:last-child) {
-  border-right: 0.5px solid #eee;
+  border-right: 0.5px solid #ccc;
 }
 
 .month-name {
@@ -37,9 +37,9 @@ body {
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.3em;
-  color: #333;
+  color: #000;
   padding: 1mm 0;
-  border-bottom: 0.5px solid #eee;
+  border-bottom: 0.5px solid #ccc;
   flex-shrink: 0;
 }
 
@@ -56,21 +56,27 @@ body {
 }
 
 .month-name + div {
-  border-top: 0.5px solid #eee;
+  border-top: 0.5px solid #ccc;
 }
 
 .is-week-start:not(.is-month-start) {
-  border-top: 0.5px solid #eee;
+  border-top: 0.5px solid #ccc;
 }
 
 .is-last-day {
   font-weight: 600;
 }
 
-.holiday-name, .week-number {
-  font-size: 3pt;
+.week-number {
+  font-size: 3.5pt;
   line-height: 1;
-  color: #ccc;
+  color: #999;
+}
+
+.holiday-name {
+  font-size: 3.5pt;
+  line-height: 1;
+  color: #999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
