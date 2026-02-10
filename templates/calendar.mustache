@@ -11,7 +11,7 @@
       }
 
       @page {
-        size: A4 portrait;
+        size: A4 landscape;
         margin: 0;
       }
 
@@ -24,16 +24,29 @@
         margin-bottom: {{notes_space_mm}}mm;
       }
 
+      .week-number {
+        font-size: {{week_number_font_size_pt}}pt;
+      }
+
+      .holiday-name {
+        font-size: {{special_day_font_size_pt}}pt;
+      }
+
       .page {
         --holiday-flex: 1.30;
         --day-gap: 0.5ch;
         --day-number-width: 2ch;
         --weekday-width: 2ch;
-        width: 210mm;
-        height: 297mm;
+        width: 297mm;
+        height: 210mm;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        page-break-after: always;
+      }
+
+      .page:last-child {
+        page-break-after: auto;
       }
 
       .half {
@@ -88,11 +101,10 @@
     </style>
   </head>
   <body>
-    <div class="page">
+    <div class="page first-page">
       <div class="header">{{year}}</div>
-      {{#halves}}
       <div class="half">
-        {{#months}}
+        {{#first_half}}{{#months}}
         <div class="month">
           <div class="month-name">{{name}}</div>
           {{#days}}
@@ -108,9 +120,29 @@
           </div>
           {{/days}}
         </div>
-        {{/months}}
+        {{/months}}{{/first_half}}
       </div>
-      {{/halves}}
+    </div>
+    <div class="page">
+      <div class="half">
+        {{#second_half}}{{#months}}
+        <div class="month">
+          <div class="month-name">{{name}}</div>
+          {{#days}}
+          <div class="day {{#is_weekend}}is-weekend {{/is_weekend}}{{#is_holiday}}is-holiday {{/is_holiday}}{{#is_week_start}}is-week-start {{/is_week_start}}{{#is_month_start}}is-month-start {{/is_month_start}}{{#is_last_day}}is-last-day {{/is_last_day}}{{#holiday_name}}has-holiday{{/holiday_name}}">
+            <div class="day-container">
+              <span class="day-label">
+                <span class="day-number">{{day_number}}</span>
+                <span class="weekday">{{weekday}}</span>
+              </span>
+              {{#is_week_start}}<span class="week-number">{{week_number}}</span>{{/is_week_start}}
+            </div>
+            {{#holiday_name}}<span class="holiday-name">{{holiday_name}}</span>{{/holiday_name}}
+          </div>
+          {{/days}}
+        </div>
+        {{/months}}{{/second_half}}
+      </div>
     </div>
   </body>
 </html>

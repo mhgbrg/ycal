@@ -15,11 +15,11 @@ body {
   border-bottom: 2px solid #333;
 }
 
-.half:last-child {
+.page:not(.first-page) .half {
   margin-bottom: 8mm;
 }
 
-.half:last-child .month > div:last-child {
+.page:not(.first-page) .half .month > div:last-child {
   border-bottom: 1px solid #999;
 }
 
@@ -51,7 +51,7 @@ body {
 }
 
 .is-weekend, .is-holiday {
-  color: #c45;
+  color: #a3192a;
   background: #f0f0f0;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -71,15 +71,13 @@ body {
 }
 
 .week-number {
-  font-size: 3.5pt;
   line-height: 1;
-  color: #777;
+  color: #000;
 }
 
 .holiday-name {
-  font-size: 3.5pt;
   line-height: 1;
-  color: #777;
+  color: #000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

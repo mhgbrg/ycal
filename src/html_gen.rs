@@ -13,6 +13,8 @@ pub struct CalendarParams {
     pub day_name_characters: usize,
     pub day_font_size_pt: f32,
     pub month_font_size_pt: f32,
+    pub week_number_font_size_pt: f32,
+    pub special_day_font_size_pt: f32,
     pub notes_space_mm: f32,
     pub theme_css: String,
     pub special_days: Vec<SpecialDay>,
@@ -30,8 +32,11 @@ struct TemplateData {
     year: i32,
     day_font_size_pt: f32,
     month_font_size_pt: f32,
+    week_number_font_size_pt: f32,
+    special_day_font_size_pt: f32,
     notes_space_mm: f32,
-    halves: Vec<HalfData>,
+    first_half: HalfData,
+    second_half: HalfData,
     theme_css: String,
 }
 
@@ -113,6 +118,8 @@ pub fn generate_calendar(params: CalendarParams) -> Result<String, CalendarError
         params.day_name_characters,
         params.day_font_size_pt,
         params.month_font_size_pt,
+        params.week_number_font_size_pt,
+        params.special_day_font_size_pt,
         params.notes_space_mm,
         &params.special_days,
         params.theme_css,
@@ -127,6 +134,8 @@ fn build_template_data(
     day_name_chars: usize,
     day_font_size_pt: f32,
     month_font_size_pt: f32,
+    week_number_font_size_pt: f32,
+    special_day_font_size_pt: f32,
     notes_space_mm: f32,
     special_days: &[SpecialDay],
     theme_css: String,
@@ -169,39 +178,40 @@ fn build_template_data(
         }
     };
 
-    let halves = vec![
-        HalfData {
-            months: (0..6)
-                .map(|i| {
-                    let month_date = NaiveDate::from_ymd_opt(year, (i + 1) as u32, 1).unwrap();
-                    let month_name = month_date.format_localized("%B", locale).to_string();
-                    MonthData {
-                        name: capitalize_first(&month_name),
-                        days: months[i].iter().map(&date_to_day_data).collect(),
-                    }
-                })
-                .collect(),
-        },
-        HalfData {
-            months: (6..12)
-                .map(|i| {
-                    let month_date = NaiveDate::from_ymd_opt(year, (i + 1) as u32, 1).unwrap();
-                    let month_name = month_date.format_localized("%B", locale).to_string();
-                    MonthData {
-                        name: capitalize_first(&month_name),
-                        days: months[i].iter().map(&date_to_day_data).collect(),
-                    }
-                })
-                .collect(),
-        },
-    ];
+    let first_half = HalfData {
+        months: (0..6)
+            .map(|i| {
+                let month_date = NaiveDate::from_ymd_opt(year, (i + 1) as u32, 1).unwrap();
+                let month_name = month_date.format_localized("%B", locale).to_string();
+                MonthData {
+                    name: capitalize_first(&month_name),
+                    days: months[i].iter().map(&date_to_day_data).collect(),
+                }
+            })
+            .collect(),
+    };
+    let second_half = HalfData {
+        months: (6..12)
+            .map(|i| {
+                let month_date = NaiveDate::from_ymd_opt(year, (i + 1) as u32, 1).unwrap();
+                let month_name = month_date.format_localized("%B", locale).to_string();
+                MonthData {
+                    name: capitalize_first(&month_name),
+                    days: months[i].iter().map(&date_to_day_data).collect(),
+                }
+            })
+            .collect(),
+    };
 
     TemplateData {
         year,
         day_font_size_pt,
         month_font_size_pt,
+        week_number_font_size_pt,
+        special_day_font_size_pt,
         notes_space_mm,
-        halves,
+        first_half,
+        second_half,
         theme_css,
     }
 }

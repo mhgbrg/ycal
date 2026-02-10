@@ -13,6 +13,10 @@ struct Params {
     day_font_size: f32,
     #[serde(default = "default_month_font_size")]
     month_font_size: f32,
+    #[serde(default = "default_week_number_font_size")]
+    week_number_font_size: f32,
+    #[serde(default = "default_special_day_font_size")]
+    special_day_font_size: f32,
     #[serde(default = "default_notes_space")]
     notes_space: f32,
     #[serde(default = "default_theme")]
@@ -30,15 +34,23 @@ fn default_day_name_characters() -> usize {
 }
 
 fn default_day_font_size() -> f32 {
-    8.0
+    10.0
 }
 
 fn default_month_font_size() -> f32 {
-    8.0
+    10.0
+}
+
+fn default_week_number_font_size() -> f32 {
+    6.0
+}
+
+fn default_special_day_font_size() -> f32 {
+    6.0
 }
 
 fn default_notes_space() -> f32 {
-    24.0
+    40.0
 }
 
 fn default_theme() -> String {
@@ -62,6 +74,8 @@ pub fn generate_calendar(params_json: &str) -> Result<String, JsValue> {
         day_name_characters: params.day_name_characters,
         day_font_size_pt: params.day_font_size,
         month_font_size_pt: params.month_font_size,
+        week_number_font_size_pt: params.week_number_font_size,
+        special_day_font_size_pt: params.special_day_font_size,
         notes_space_mm: params.notes_space,
         theme_css: theme_css.to_string(),
         special_days: params.special_days,

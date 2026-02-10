@@ -441,8 +441,8 @@
 
       .iframe-wrapper iframe {
         border: none;
-        width: 210mm;
-        height: 297mm;
+        width: 297mm;
+        height: 420mm;
         position: absolute;
         top: 0;
         left: 0;
@@ -695,15 +695,23 @@
         </div>
         <div class="field">
           <label for="day-font-size">Day font size (pt)</label>
-          <input type="number" id="day-font-size" step="0.5" value="8">
+          <input type="number" id="day-font-size" step="0.5" value="10">
         </div>
         <div class="field">
           <label for="month-font-size">Month font size (pt)</label>
-          <input type="number" id="month-font-size" step="0.5" value="8">
+          <input type="number" id="month-font-size" step="0.5" value="10">
+        </div>
+        <div class="field">
+          <label for="week-number-font-size">Week number font size (pt)</label>
+          <input type="number" id="week-number-font-size" step="0.5" value="6">
+        </div>
+        <div class="field">
+          <label for="special-day-font-size">Special day font size (pt)</label>
+          <input type="number" id="special-day-font-size" step="0.5" value="6">
         </div>
         <div class="field">
           <label for="notes-space">Space for notes (mm)</label>
-          <input type="number" id="notes-space" step="1" value="24">
+          <input type="number" id="notes-space" step="1" value="40">
         </div>
       </details>
 
@@ -740,6 +748,8 @@
       const dayCharsInput = document.getElementById('day-chars');
       const dayFontSizeInput = document.getElementById('day-font-size');
       const monthFontSizeInput = document.getElementById('month-font-size');
+      const weekNumberFontSizeInput = document.getElementById('week-number-font-size');
+      const specialDayFontSizeInput = document.getElementById('special-day-font-size');
       const notesSpaceInput = document.getElementById('notes-space');
 
       // Mobile panel
@@ -820,8 +830,8 @@
 
       function scaleMobilePreview() {
         const pad = 16;
-        const iframeW = 793.7;
-        const iframeH = 1122.5;
+        const iframeW = 1122.5;  // 297mm
+        const iframeH = 1587.4;  // 420mm (2 × 210mm)
         const availW = previewEl.clientWidth - pad;
         const fitScale = Math.min(availW / iframeW, 1);
         const scale = fitScale * mobileZoom;
@@ -946,6 +956,8 @@
           dayChars: parseInt(dayCharsInput.value),
           dayFontSize: parseFloat(dayFontSizeInput.value),
           monthFontSize: parseFloat(monthFontSizeInput.value),
+          weekNumberFontSize: parseFloat(weekNumberFontSizeInput.value),
+          specialDayFontSize: parseFloat(specialDayFontSizeInput.value),
           notesSpace: parseFloat(notesSpaceInput.value),
           specialDays: specialDays,
         };
@@ -975,6 +987,8 @@
         if (state.dayChars) dayCharsInput.value = state.dayChars;
         if (state.dayFontSize) dayFontSizeInput.value = state.dayFontSize;
         if (state.monthFontSize) monthFontSizeInput.value = state.monthFontSize;
+        if (state.weekNumberFontSize) weekNumberFontSizeInput.value = state.weekNumberFontSize;
+        if (state.specialDayFontSize) specialDayFontSizeInput.value = state.specialDayFontSize;
         if (state.notesSpace !== undefined) notesSpaceInput.value = state.notesSpace;
         if (Array.isArray(state.specialDays)) {
           specialDays.length = 0;
@@ -992,9 +1006,11 @@
         localeCustom.value = '';
         themeSelect.value = 'minimalist';
         dayCharsInput.value = 1;
-        dayFontSizeInput.value = 8;
-        monthFontSizeInput.value = 8;
-        notesSpaceInput.value = 24;
+        dayFontSizeInput.value = 10;
+        monthFontSizeInput.value = 10;
+        weekNumberFontSizeInput.value = 6;
+        specialDayFontSizeInput.value = 6;
+        notesSpaceInput.value = 40;
         specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
@@ -1008,6 +1024,8 @@
           day_name_characters: parseInt(dayCharsInput.value),
           day_font_size: parseFloat(dayFontSizeInput.value),
           month_font_size: parseFloat(monthFontSizeInput.value),
+          week_number_font_size: parseFloat(weekNumberFontSizeInput.value),
+          special_day_font_size: parseFloat(specialDayFontSizeInput.value),
           notes_space: parseFloat(notesSpaceInput.value),
           special_days: specialDays,
         });
@@ -1059,6 +1077,16 @@
         clearTimeout(monthFontSizeTimeout);
         monthFontSizeTimeout = setTimeout(updatePreview, 400);
       });
+      let weekNumberFontSizeTimeout;
+      weekNumberFontSizeInput.addEventListener('input', () => {
+        clearTimeout(weekNumberFontSizeTimeout);
+        weekNumberFontSizeTimeout = setTimeout(updatePreview, 400);
+      });
+      let specialDayFontSizeTimeout;
+      specialDayFontSizeInput.addEventListener('input', () => {
+        clearTimeout(specialDayFontSizeTimeout);
+        specialDayFontSizeTimeout = setTimeout(updatePreview, 400);
+      });
       let notesSpaceTimeout;
       notesSpaceInput.addEventListener('input', () => {
         clearTimeout(notesSpaceTimeout);
@@ -1069,11 +1097,39 @@
         iframe.contentWindow.print();
       };
 
+      window.addEventListener('beforeprint', () => {
+        const iframeDoc = iframe.contentDocument;
+        if (!iframeDoc) return;
+        const mirror = document.createElement('div');
+        mirror.id = 'print-mirror';
+        const style = document.createElement('style');
+        style.textContent = iframeDoc.querySelector('style').textContent;
+        mirror.appendChild(style);
+        mirror.insertAdjacentHTML('beforeend', iframeDoc.body.innerHTML);
+        for (const child of document.body.children) {
+          child.dataset.printHidden = child.style.display;
+          child.style.display = 'none';
+        }
+        document.body.appendChild(mirror);
+      });
+
+      window.addEventListener('afterprint', () => {
+        const mirror = document.getElementById('print-mirror');
+        if (!mirror) return;
+        mirror.remove();
+        for (const child of document.body.children) {
+          if ('printHidden' in child.dataset) {
+            child.style.display = child.dataset.printHidden;
+            delete child.dataset.printHidden;
+          }
+        }
+      });
+
       let zoomLevel = 1.0;
       const zoomLabel = document.getElementById('zoom-label');
 
       window.zoomIn = function() {
-        zoomLevel = Math.min(zoomLevel + 0.25, 3.0);
+        zoomLevel = Math.min(zoomLevel + 0.25, 5.0);
         applyZoom();
       };
 
@@ -1096,8 +1152,8 @@
       function scalePreview() {
         const container = document.querySelector('.preview');
         const wrapper = document.getElementById('iframe-wrapper');
-        const iframeW = 793.7;  // 210mm in px at 96dpi
-        const iframeH = 1122.5; // 297mm in px at 96dpi
+        const iframeW = 1122.5;  // 297mm in px at 96dpi
+        const iframeH = 1587.4; // 420mm (2 × 210mm) in px at 96dpi
 
         if (isMobile()) {
           scaleMobilePreview();

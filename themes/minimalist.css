@@ -16,11 +16,11 @@ body {
   padding-left: 1mm;
 }
 
-.half:last-child {
+.page:not(.first-page) .half {
   margin-bottom: 8mm;
 }
 
-.half:last-child .month > div:last-child {
+.page:not(.first-page) .half .month > div:last-child {
   border-bottom: 0.5px solid #ccc;
 }
 
@@ -68,16 +68,13 @@ body {
 }
 
 .week-number {
-  font-size: 3.5pt;
   line-height: 1;
-  color: #999;
+  color: #000;
 }
 
 .holiday-name {
-  font-size: 3.5pt;
-  line-height: 1;
-  color: #999;
+  line-height: 1.3;
+  color: #000;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
 }

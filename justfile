@@ -25,6 +25,7 @@ dev-web:
     just serve & just watch & wait
 
 dev-cli:
+    mkdir -p out/
     npx live-server out/ &
     watchexec -w src -w static -w templates -w themes --restart -- \
         'for theme in minimalist retro contemporary; do cargo run --bin cli -- 2026 --locale en-GB --theme themes/$theme.css > out/$theme.html.tmp && mv out/$theme.html.tmp out/$theme.html; done'
