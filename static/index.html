@@ -192,6 +192,49 @@
         box-shadow: none;
       }
 
+      .tooltip-wrapper {
+        position: relative;
+      }
+
+      .tooltip {
+        display: none;
+        position: fixed;
+        width: 232px;
+        padding: 8px 10px;
+        margin-top: 6px;
+        background: #252540;
+        border: 1px solid #3a3a55;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #c0c0d0;
+        line-height: 1.4;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 200;
+      }
+
+      .tooltip a {
+        color: #e63946;
+        text-decoration: none;
+      }
+
+      .tooltip a:hover {
+        text-decoration: underline;
+      }
+
+      .tooltip::before {
+        content: '';
+        position: absolute;
+        top: -7px;
+        left: 0;
+        right: 0;
+        height: 7px;
+      }
+
+      .tooltip-wrapper:hover .tooltip,
+      .tooltip:hover {
+        display: block;
+      }
+
       .special-day-add {
         display: flex;
         flex-direction: column;
@@ -671,7 +714,10 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
           <label>Special days</label>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="link-btn" id="load-holidays-btn" onclick="loadPublicHolidays()">Generate</button>
+            <span class="tooltip-wrapper">
+              <button class="link-btn" id="load-holidays-btn" onclick="loadPublicHolidays()">Generate</button>
+              <span class="tooltip">Generates special days for all public holidays for the selected country. Powered by <a href="https://date.nager.at" target="_blank" rel="noopener">Nager.Date</a>.</span>
+            </span>
             <span style="color:#555570;font-size:12px">&middot;</span>
             <button class="link-btn" id="clear-sd-btn" onclick="clearSpecialDays()">Clear</button>
           </div>
@@ -770,6 +816,14 @@
       const controlsPanel = document.getElementById('controls-panel');
       const overlay = document.getElementById('overlay');
       const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
+
+      document.querySelector('.tooltip-wrapper').addEventListener('mouseenter', function() {
+        const tip = this.querySelector('.tooltip');
+        const btnRect = this.getBoundingClientRect();
+        const panelRect = controlsPanel.getBoundingClientRect();
+        tip.style.top = btnRect.bottom + 'px';
+        tip.style.left = (panelRect.left + 24) + 'px';
+      });
 
       window.openPanel = function() {
         controlsPanel.classList.add('open');
