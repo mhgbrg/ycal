@@ -4,22 +4,6 @@ Tool for generating printable yearly calendars.
 
 🤖️ The code in this repo was written using Claude Code (with human oversight) 🤖
 
-## Themes
-
-ycal has three built-in themes:
-
-- **minimalist** — Clean sans-serif design with minimal decoration
-
-![minimalist theme](screenshots/minimalist.png)
-
-- **retro** — Typewriter-style monospace font with a vintage feel
-
-![retro theme](screenshots/retro.png)
-
-- **contemporary** — Modern sans-serif with bolder visual accents
-
-![contemporary theme](screenshots/contemporary.png)
-
 ## Usage
 
 ycal can be used in two ways: through a web UI and from the terminal using a CLI.
@@ -84,7 +68,7 @@ The `--special-days` option expects the file to have the following format:
 
 Days with `"is_holiday": true` are styled in red like weekends, while `false` displays the name without any color change.
 
-You can generate a special days file with public holidays using the bundled `holidays` script, which fetches the [Nager.Date API](https://date.nager.at/):
+You can generate a special days file with public holidays using the bundled `holidays` script, which uses the [Nager.Date API](https://date.nager.at/):
 
 ```bash
 just holidays 2026 GB > holidays.json
@@ -111,9 +95,10 @@ Theming is provided using separate CSS files. The theme CSS is embedded directly
 ## Development
 
 ```bash
-# Web UI. Builds the code, and starts a live-reloading web server that hosts the files.
+# Web UI. Builds the code and starts a live-reloading web server that hosts the files.
 just dev-web
 
-# CLI. This uses the CLI to generate HTML files for all themes in the out/ folder, and starts a live-reloading web server that hosts the files.
+# CLI. This uses the CLI to generate HTML files for all themes in the out/ folder
+# and starts a live-reloading web server that hosts the files.
 just dev-cli
 ```
