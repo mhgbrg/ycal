@@ -26,7 +26,7 @@ struct Params {
     #[serde(default = "default_highlight_holidays")]
     highlight_holidays: bool,
     #[serde(default)]
-    saturday_is_weekend: bool,
+    saturday_is_holiday: bool,
 }
 
 fn default_locale() -> String {
@@ -88,7 +88,7 @@ pub fn generate_calendar(params_json: &str) -> Result<String, JsValue> {
         theme_css: theme_css.to_string(),
         special_days: params.special_days,
         highlight_holidays: params.highlight_holidays,
-        saturday_is_weekend: params.saturday_is_weekend,
+        saturday_is_holiday: params.saturday_is_holiday,
     };
 
     crate::generate_calendar(calendar_params).map_err(|e| JsValue::from_str(&e.to_string()))

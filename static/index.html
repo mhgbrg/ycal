@@ -767,8 +767,8 @@
         </div>
         <div class="field">
           <div class="field-row">
-            <input type="checkbox" id="saturday-is-weekend">
-            <label for="saturday-is-weekend">Saturday is weekend</label>
+            <input type="checkbox" id="saturday-is-holiday">
+            <label for="saturday-is-holiday">Saturday is holiday</label>
           </div>
         </div>
       </details>
@@ -810,7 +810,7 @@
       const specialDayFontSizeInput = document.getElementById('special-day-font-size');
       const notesSpaceInput = document.getElementById('notes-space');
       const highlightHolidaysInput = document.getElementById('highlight-holidays');
-      const saturdayIsWeekendInput = document.getElementById('saturday-is-weekend');
+      const saturdayIsHolidayInput = document.getElementById('saturday-is-holiday');
 
       // Mobile panel
       const controlsPanel = document.getElementById('controls-panel');
@@ -1028,7 +1028,7 @@
           specialDayFontSize: parseFloat(specialDayFontSizeInput.value),
           notesSpace: parseFloat(notesSpaceInput.value),
           highlightHolidays: highlightHolidaysInput.checked,
-          saturdayIsWeekend: saturdayIsWeekendInput.checked,
+          saturdayIsHoliday: saturdayIsHolidayInput.checked,
           specialDays: specialDays,
         };
         try { localStorage.setItem('ycal-state', JSON.stringify(state)); } catch(e) {}
@@ -1061,7 +1061,7 @@
         if (state.specialDayFontSize) specialDayFontSizeInput.value = state.specialDayFontSize;
         if (state.notesSpace !== undefined) notesSpaceInput.value = state.notesSpace;
         if (state.highlightHolidays !== undefined) highlightHolidaysInput.checked = state.highlightHolidays;
-        if (state.saturdayIsWeekend !== undefined) saturdayIsWeekendInput.checked = state.saturdayIsWeekend;
+        if (state.saturdayIsHoliday !== undefined) saturdayIsHolidayInput.checked = state.saturdayIsHoliday;
         if (Array.isArray(state.specialDays)) {
           specialDays.length = 0;
           state.specialDays.forEach(sd => specialDays.push(sd));
@@ -1084,7 +1084,7 @@
         specialDayFontSizeInput.value = 6;
         notesSpaceInput.value = 40;
         highlightHolidaysInput.checked = true;
-        saturdayIsWeekendInput.checked = false;
+        saturdayIsHolidayInput.checked = false;
         specialDays.length = 0;
         renderSpecialDays();
         updatePreview();
@@ -1102,7 +1102,7 @@
           special_day_font_size: parseFloat(specialDayFontSizeInput.value),
           notes_space: parseFloat(notesSpaceInput.value),
           highlight_holidays: highlightHolidaysInput.checked,
-          saturday_is_weekend: saturdayIsWeekendInput.checked,
+          saturday_is_holiday: saturdayIsHolidayInput.checked,
           special_days: specialDays,
         });
         try {
@@ -1164,7 +1164,7 @@
         specialDayFontSizeTimeout = setTimeout(updatePreview, 400);
       });
       highlightHolidaysInput.addEventListener('change', updatePreview);
-      saturdayIsWeekendInput.addEventListener('change', updatePreview);
+      saturdayIsHolidayInput.addEventListener('change', updatePreview);
       let notesSpaceTimeout;
       notesSpaceInput.addEventListener('input', () => {
         clearTimeout(notesSpaceTimeout);

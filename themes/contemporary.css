@@ -55,7 +55,7 @@ body {
   letter-spacing: 0.02em;
 }
 
-.is-weekend, .is-holiday {
+.is-holiday {
   color: #e63946;
   background: #f0f0f0;
   -webkit-print-color-adjust: exact;

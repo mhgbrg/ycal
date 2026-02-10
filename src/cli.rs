@@ -36,9 +36,9 @@ struct Cli {
     /// Highlight weekends and holidays with a background color
     #[arg(long, default_value = "true")]
     highlight_holidays: bool,
-    /// Treat Saturdays as weekend days
+    /// Treat Saturdays as holidays
     #[arg(long, default_value = "false")]
-    saturday_is_weekend: bool,
+    saturday_is_holiday: bool,
     /// Path to CSS theme file
     #[arg(long)]
     theme: PathBuf,
@@ -70,7 +70,7 @@ fn generate(cli: Cli) {
         theme_css,
         special_days: user_special_days,
         highlight_holidays: cli.highlight_holidays,
-        saturday_is_weekend: cli.saturday_is_weekend,
+        saturday_is_holiday: cli.saturday_is_holiday,
     };
 
     match ycal::generate_calendar(params) {

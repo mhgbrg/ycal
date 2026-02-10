@@ -19,7 +19,7 @@ pub struct CalendarParams {
     pub theme_css: String,
     pub special_days: Vec<SpecialDay>,
     pub highlight_holidays: bool,
-    pub saturday_is_weekend: bool,
+    pub saturday_is_holiday: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -60,7 +60,6 @@ struct DayData {
     weekday: String,
     week_number: u32,
     is_week_start: bool,
-    is_weekend: bool,
     is_month_start: bool,
     is_holiday: bool,
     holiday_name: String,
@@ -126,7 +125,7 @@ pub fn generate_calendar(params: CalendarParams) -> Result<String, CalendarError
         &params.special_days,
         params.theme_css,
         params.highlight_holidays,
-        params.saturday_is_weekend,
+        params.saturday_is_holiday,
     );
     Ok(template.render(&template_data))
 }
@@ -144,22 +143,23 @@ fn build_template_data(
     special_days: &[SpecialDay],
     theme_css: String,
     highlight_holidays: bool,
-    saturday_is_weekend: bool,
+    saturday_is_holiday: bool,
 ) -> TemplateData {
-    let mut day_map: HashMap<NaiveDate, Vec<&SpecialDay>> = HashMap::new();
+    let mut special_days_by_date: HashMap<NaiveDate, Vec<&SpecialDay>> = HashMap::new();
     for d in special_days {
-        day_map.entry(d.date).or_default().push(d);
+        special_days_by_date.entry(d.date).or_default().push(d);
     }
 
     let date_to_day_data = |date: &NaiveDate| -> DayData {
         let day = date.day();
         let wd = date.weekday();
-        let is_weekend = wd == Weekday::Sun || (saturday_is_weekend && wd == Weekday::Sat);
-        let entries = day_map.get(date);
-        let is_holiday = entries
-            .map(|e| e.iter().any(|d| d.is_holiday))
-            .unwrap_or(false);
-        let display_name: String = entries
+        let special_days_on_date = special_days_by_date.get(date);
+        let is_holiday = wd == Weekday::Sun
+            || saturday_is_holiday && wd == Weekday::Sat
+            || special_days_on_date
+                .map(|e| e.iter().any(|d| d.is_holiday))
+                .unwrap_or(false);
+        let display_name: String = special_days_on_date
             .into_iter()
             .flatten()
             .map(|d| d.name.as_str())
@@ -174,7 +174,6 @@ fn build_template_data(
             weekday: capitalize_first(&weekday_abbr),
             week_number: date.iso_week().week(),
             is_week_start: wd == Weekday::Mon,
-            is_weekend,
             is_month_start: day == 1,
             is_holiday,
             holiday_name: display_name,
@@ -227,4 +226,3 @@ fn capitalize_first(s: &str) -> String {
         Some(c) => c.to_uppercase().to_string() + chars.as_str(),
     }
 }
-
