@@ -19,6 +19,8 @@ struct Params {
     special_day_font_size: f32,
     #[serde(default = "default_notes_space")]
     notes_space: f32,
+    #[serde(default)]
+    page_margin: f32,
     #[serde(default = "default_theme")]
     theme: String,
     #[serde(default)]
@@ -85,6 +87,7 @@ pub fn generate_calendar(params_json: &str) -> Result<String, JsValue> {
         week_number_font_size_pt: params.week_number_font_size,
         special_day_font_size_pt: params.special_day_font_size,
         notes_space_mm: params.notes_space,
+        page_margin_mm: params.page_margin,
         theme_css: theme_css.to_string(),
         special_days: params.special_days,
         highlight_holidays: params.highlight_holidays,

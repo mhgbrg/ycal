@@ -759,6 +759,10 @@
           <input type="number" id="notes-space" step="1" value="40">
         </div>
         <div class="field">
+          <label for="page-margin">Page margin (mm)</label>
+          <input type="number" id="page-margin" step="1" value="0">
+        </div>
+        <div class="field">
           <div class="field-row">
             <input type="checkbox" id="highlight-holidays" checked>
             <label for="highlight-holidays">Highlight holidays</label>
@@ -808,6 +812,7 @@
       const weekNumberFontSizeInput = document.getElementById('week-number-font-size');
       const specialDayFontSizeInput = document.getElementById('special-day-font-size');
       const notesSpaceInput = document.getElementById('notes-space');
+      const pageMarginInput = document.getElementById('page-margin');
       const highlightHolidaysInput = document.getElementById('highlight-holidays');
       const saturdayIsHolidayInput = document.getElementById('saturday-is-holiday');
 
@@ -1022,6 +1027,7 @@
           weekNumberFontSize: parseFloat(weekNumberFontSizeInput.value),
           specialDayFontSize: parseFloat(specialDayFontSizeInput.value),
           notesSpace: parseFloat(notesSpaceInput.value),
+          pageMargin: parseFloat(pageMarginInput.value),
           highlightHolidays: highlightHolidaysInput.checked,
           saturdayIsHoliday: saturdayIsHolidayInput.checked,
           specialDays: specialDays,
@@ -1055,6 +1061,7 @@
         if (state.weekNumberFontSize) weekNumberFontSizeInput.value = state.weekNumberFontSize;
         if (state.specialDayFontSize) specialDayFontSizeInput.value = state.specialDayFontSize;
         if (state.notesSpace !== undefined) notesSpaceInput.value = state.notesSpace;
+        if (state.pageMargin !== undefined) pageMarginInput.value = state.pageMargin;
         if (state.highlightHolidays !== undefined) highlightHolidaysInput.checked = state.highlightHolidays;
         if (state.saturdayIsHoliday !== undefined) saturdayIsHolidayInput.checked = state.saturdayIsHoliday;
         if (Array.isArray(state.specialDays)) {
@@ -1078,6 +1085,7 @@
         weekNumberFontSizeInput.value = 6;
         specialDayFontSizeInput.value = 6;
         notesSpaceInput.value = 40;
+        pageMarginInput.value = 0;
         highlightHolidaysInput.checked = true;
         saturdayIsHolidayInput.checked = false;
         specialDays.length = 0;
@@ -1096,6 +1104,7 @@
           week_number_font_size: parseFloat(weekNumberFontSizeInput.value),
           special_day_font_size: parseFloat(specialDayFontSizeInput.value),
           notes_space: parseFloat(notesSpaceInput.value),
+          page_margin: parseFloat(pageMarginInput.value),
           highlight_holidays: highlightHolidaysInput.checked,
           saturday_is_holiday: saturdayIsHolidayInput.checked,
           special_days: specialDays,
@@ -1164,6 +1173,11 @@
       notesSpaceInput.addEventListener('input', () => {
         clearTimeout(notesSpaceTimeout);
         notesSpaceTimeout = setTimeout(updatePreview, 400);
+      });
+      let pageMarginTimeout;
+      pageMarginInput.addEventListener('input', () => {
+        clearTimeout(pageMarginTimeout);
+        pageMarginTimeout = setTimeout(updatePreview, 400);
       });
 
       window.printCalendar = function() {

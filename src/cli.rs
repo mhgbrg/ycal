@@ -33,6 +33,9 @@ struct Cli {
     /// Space for notes below month names in mm
     #[arg(long, default_value = "40")]
     notes_space: f32,
+    /// Page margin in mm
+    #[arg(long, default_value = "0")]
+    page_margin: f32,
     /// Highlight weekends and holidays with a background color
     #[arg(long, default_value = "true")]
     highlight_holidays: bool,
@@ -67,6 +70,7 @@ fn generate(cli: Cli) {
         week_number_font_size_pt: cli.week_number_font_size,
         special_day_font_size_pt: cli.special_day_font_size,
         notes_space_mm: cli.notes_space,
+        page_margin_mm: cli.page_margin,
         theme_css,
         special_days: user_special_days,
         highlight_holidays: cli.highlight_holidays,
